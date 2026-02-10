@@ -18,6 +18,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-variant: Miniforge3
+          miniforge-version: latest
           activate-environment: ectop
           environment-file: environment.yml
           python-version: "3.11"
@@ -26,7 +27,7 @@ jobs:
       - name: Install documentation dependencies
         shell: bash -el {0}
         run: |
-          pip install .[docs]
+          pip install -e .[docs]
 
       - name: Build and Deploy
         shell: bash -el {0}
