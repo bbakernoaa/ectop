@@ -2,12 +2,10 @@ name: ectop
 channels:
   - conda-forge
 dependencies:
-  - python=3.12
+  - python=3.11
   - ecflow
   - textual>=0.7.0
   - rich>=13.0.0
   - pytest
   - pytest-asyncio
   - pip
-  - pip:
-    - -e .
