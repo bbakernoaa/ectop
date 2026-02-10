@@ -74,6 +74,7 @@ Currently, `ectop` defaults to connecting to `localhost:3141`. Future versions w
 
 ## Documentation
 
+- [Tutorial](tutorial.md)
 - [Architecture](architecture.md)
 - [Reference](reference.md)
 - [Contributing](contributing.md)
