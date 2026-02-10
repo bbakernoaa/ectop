@@ -399,7 +399,7 @@ class Ectop(App):
             The original content of the script.
         """
         try:
-            with open(temp_path, "r") as f:
+            with open(temp_path) as f:
                 new_content = f.read()
 
             if os.path.exists(temp_path):

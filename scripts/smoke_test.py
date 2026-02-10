@@ -20,7 +20,7 @@ def run_smoke_test():
         ["ecflow_server"],
         env={**os.environ, "ECF_PORT": str(ecf_port), "ECF_HOME": ecf_home},
         stdout=open("server_stdout_final.log", "w"),
-        stderr=open("server_stderr_final.log", "w")
+        stderr=open("server_stderr_final.log", "w"),
     )
 
     client = ecflow.Client("localhost", ecf_port)
@@ -65,6 +65,7 @@ def run_smoke_test():
         print("Server stopped.")
         if os.path.exists(ecf_home):
             shutil.rmtree(ecf_home)
+
 
 if __name__ == "__main__":
     run_smoke_test()

@@ -5,7 +5,7 @@ Confirmation modal dialog.
     If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
-from typing import Callable
+from collections.abc import Callable
 
 from textual.app import ComposeResult
 from textual.binding import Binding
