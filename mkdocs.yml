@@ -1,4 +1,6 @@
 site_name: ectop
+site_url: https://bbakernoaa.github.io/ectop/
+repo_url: https://github.com/bbakernoaa/ectop
 theme:
   name: material
 
