@@ -32,7 +32,7 @@ class SuiteTree(Tree):
 
         new_ui_node = parent_ui_node.add(
             label,
-            data=ecflow_node.abs_node_path(),
+            data=ecflow_node.get_abs_node_path(),
             expand=False,
         )
 
@@ -43,7 +43,14 @@ class SuiteTree(Tree):
     def find_and_select(self, query, start_node=None):
         """Find nodes matching query and select the next one."""
         query = query.lower()
-        all_nodes = list(self.root.descendants)
+
+        all_nodes = []
+        def collect_nodes(node):
+            for child in node.children:
+                all_nodes.append(child)
+                collect_nodes(child)
+
+        collect_nodes(self.root)
 
         # Start from current cursor if possible
         start_index = 0

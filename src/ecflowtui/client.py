@@ -27,7 +27,7 @@ class EcflowClient:
         return self.client.get_defs()
 
     def file(self, path, file_type):
-        return self.client.file(path, file_type)
+        return self.client.get_file(path, file_type)
 
     def suspend(self, path):
         self.client.suspend(path)
@@ -39,7 +39,7 @@ class EcflowClient:
         self.client.kill(path)
 
     def force_complete(self, path):
-        self.client.force_complete(path)
+        self.client.force_state(path, ecflow.State.complete)
 
     def alter(self, path, alter_type, name, value=""):
         self.client.alter(path, alter_type, name, value)

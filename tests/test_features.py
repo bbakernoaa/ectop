@@ -39,7 +39,9 @@ def test_search_logic():
     # We use __new__ to avoid calling __init__ which triggers Textual internals
     tree = SuiteTree.__new__(SuiteTree)
     tree.root = MagicMock()
-    tree.root.descendants = [node1, node2]
+    tree.root.children = [node1, node2]
+    node1.children = []
+    node2.children = []
 
     # Mock methods used in find_and_select
     tree.select_node = MagicMock()
