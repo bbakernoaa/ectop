@@ -1,11 +1,7 @@
-import sys
 from unittest.mock import MagicMock, PropertyMock, patch
 
-# Mock ecflow
-sys.modules["ecflow"] = MagicMock()
-
-import pytest  # noqa: E402
-from ectop.app import Ectop  # noqa: E402
+import pytest
+from ectop.app import Ectop
 from ectop.widgets.content import MainContent  # noqa: E402
 from ectop.widgets.sidebar import SuiteTree  # noqa: E402
 
@@ -90,16 +86,20 @@ def test_variable_tweaker_refresh():
 
     table = MagicMock()
     tweaker.query_one = MagicMock(return_value=table)
+    # Mock app and call_from_thread
+    with patch.object(VariableTweaker, "app", new_callable=PropertyMock) as mock_app:
+        mock_app.return_value = MagicMock()
+        tweaker.call_from_thread = lambda f, *args, **kwargs: f(*args, **kwargs)
 
-    node = MagicMock()
-    var1 = MagicMock()
-    var1.name.return_value = "VAR1"
-    var1.value.return_value = "VAL1"
-    node.variables = [var1]
-    node.generated_variables = []
-    node.parent = None
+        node = MagicMock()
+        var1 = MagicMock()
+        var1.name.return_value = "VAR1"
+        var1.value.return_value = "VAL1"
+        node.variables = [var1]
+        node.generated_variables = []
+        node.parent = None
 
-    client.get_defs.return_value.find_abs_node.return_value = node
+        client.get_defs.return_value.find_abs_node.return_value = node
 
-    tweaker.refresh_vars()
-    table.add_row.assert_any_call("VAR1", "VAL1", "User", key="VAR1")
+        tweaker.refresh_vars()
+        table.add_row.assert_any_call("VAR1", "VAL1", "User", key="VAR1")

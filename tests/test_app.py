@@ -24,15 +24,14 @@ async def test_app_handles_runtime_error():
 
     with patch("ectop.app.EcflowClient", return_value=mock_client):
         app = Ectop()
-        # We use run_test to test Textual apps
+        # Mock call_from_thread to avoid thread-check issues in run_test
+        app.call_from_thread = lambda callback, *args, **kwargs: callback(*args, **kwargs)
+
         async with app.run_test() as pilot:
-            # In on_mount, ping() is called. If it raises RuntimeError, notify is called.
+            # In on_mount, _initial_connect is called.
             # We wait for any workers to finish
             await pilot.pause()
             # Check notifications in the app
-            # Textual stores notifications in _notifications
             assert len(app._notifications) > 0
-            # Check the message of the first notification
-            # In newer Textual, notifications are objects with a message attribute (which might be a Renderable)
             notification = list(app._notifications)[0]
             assert "Connection Failed" in str(notification.message)

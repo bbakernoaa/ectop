@@ -29,7 +29,7 @@ def test_client_ping_failure():
     with patch("ectop.client.ecflow.Client") as mock_client:
         client = EcflowClient()
         mock_client.return_value.ping.side_effect = RuntimeError("Connection refused")
-        with pytest.raises(RuntimeError, match="Failed to ping server"):
+        with pytest.raises(RuntimeError, match="Failed to ping ecFlow server"):
             client.ping()
 
 
@@ -44,7 +44,7 @@ def test_client_sync_local_failure():
     with patch("ectop.client.ecflow.Client") as mock_client:
         client = EcflowClient()
         mock_client.return_value.sync_local.side_effect = RuntimeError("Sync error")
-        with pytest.raises(RuntimeError, match="Failed to sync with server"):
+        with pytest.raises(RuntimeError, match="Failed to sync with ecFlow server"):
             client.sync_local()
 
 
@@ -68,7 +68,7 @@ def test_client_file_failure():
     with patch("ectop.client.ecflow.Client") as mock_client:
         client = EcflowClient()
         mock_client.return_value.file.side_effect = RuntimeError("File not found")
-        with pytest.raises(RuntimeError, match="Failed to fetch jobout for /path"):
+        with pytest.raises(RuntimeError, match="Failed to retrieve jobout for /path"):
             client.file("/path", "jobout")
 
 
