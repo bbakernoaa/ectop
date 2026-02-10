@@ -6,14 +6,14 @@ sys.modules["ecflow"] = MagicMock()
 
 import pytest  # noqa: E402
 
-from ecflowtui.app import EcflowTUI  # noqa: E402
-from ecflowtui.widgets.content import MainContent  # noqa: E402
-from ecflowtui.widgets.sidebar import SuiteTree  # noqa: E402
+from ectop.app import Ectop  # noqa: E402
+from ectop.widgets.content import MainContent  # noqa: E402
+from ectop.widgets.sidebar import SuiteTree  # noqa: E402
 
 
 @pytest.fixture
 def app():
-    return EcflowTUI()
+    return Ectop()
 
 def test_app_bindings(app):
     bindings = {b.key: b.action for b in app.BINDINGS}
@@ -66,7 +66,7 @@ def test_live_log_update():
     assert content_area.last_log_size == len("initial content added more")
 
 def test_why_inspector_parsing():
-    from ecflowtui.widgets.modals.why import WhyInspector
+    from ectop.widgets.modals.why import WhyInspector
     client = MagicMock()
     inspector = WhyInspector("/path/to/node", client)
 
@@ -78,7 +78,7 @@ def test_why_inspector_parsing():
     parent_ui_node.add.assert_any_call("AND (All must be true)", expand=True)
 
 def test_variable_tweaker_refresh():
-    from ecflowtui.widgets.modals.variables import VariableTweaker
+    from ectop.widgets.modals.variables import VariableTweaker
     client = MagicMock()
     tweaker = VariableTweaker("/path/to/node", client)
 
