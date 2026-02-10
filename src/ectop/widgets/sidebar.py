@@ -2,7 +2,7 @@ import ecflow
 from rich.text import Text
 from textual.widgets import Tree
 
-from ecflowtui.client import STATE_MAP
+from ectop.client import STATE_MAP
 
 
 class SuiteTree(Tree):

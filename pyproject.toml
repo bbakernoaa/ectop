@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ecflowtui"
+name = "ectop"
 version = "0.1.0"
 description = "A Textual interface to ecflow"
 authors = [
@@ -13,7 +13,6 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
 dependencies = [
-    "ecflow",
     "textual",
     "rich",
 ]
@@ -32,7 +31,7 @@ docs = [
 ]
 
 [project.scripts]
-ecflowtui = "ecflowtui.ecflow_tui:main"
+ectop = "ectop.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

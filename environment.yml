@@ -1,4 +1,4 @@
-name: ecflowtui
+name: ectop
 channels:
   - conda-forge
 dependencies:

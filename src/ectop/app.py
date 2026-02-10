@@ -3,18 +3,18 @@ from textual.binding import Binding
 from textual.containers import Container, Horizontal
 from textual.widgets import Footer, Header, Input
 
-from ecflowtui.client import EcflowClient
-from ecflowtui.widgets.content import MainContent
-from ecflowtui.widgets.modals.variables import VariableTweaker
-from ecflowtui.widgets.modals.why import WhyInspector
-from ecflowtui.widgets.search import SearchBox
-from ecflowtui.widgets.sidebar import SuiteTree
+from ectop.client import EcflowClient
+from ectop.widgets.content import MainContent
+from ectop.widgets.modals.variables import VariableTweaker
+from ectop.widgets.modals.why import WhyInspector
+from ectop.widgets.search import SearchBox
+from ectop.widgets.sidebar import SuiteTree
 
 # --- Configuration ---
 ECFLOW_HOST = "localhost"
 ECFLOW_PORT = 3141
 
-class EcflowTUI(App):
+class Ectop(App):
     """A Textual-based TUI for monitoring and controlling ecFlow."""
 
     CSS = """
@@ -309,7 +309,7 @@ class EcflowTUI(App):
     def _prompt_requeue(self, path):
         # Using a simple notification with a callback might be hard in current Textual
         # I'll create a simple modal for this
-        from ecflowtui.widgets.modals.confirm import ConfirmModal
+        from ectop.widgets.modals.confirm import ConfirmModal
         self.push_screen(ConfirmModal(f"Re-queue {path} now?", lambda: self.ecflow_client.requeue(path)))
 
     def action_search(self) -> None:
