@@ -198,7 +198,7 @@ class Ectop(App):
             # Initial refresh
             self.action_refresh()
         except Exception as e:
-            self.notify(f"Connection Failed: {e}", severity="error", timeout=10)
+            self.call_from_thread(self.notify, f"Connection Failed: {e}", severity="error", timeout=10)
             tree = self.query_one("#suite_tree", SuiteTree)
             self.call_from_thread(self._update_tree_error, tree)
 
@@ -217,9 +217,9 @@ class Ectop(App):
             self.ecflow_client.sync_local()
             defs = self.ecflow_client.get_defs()
             self.call_from_thread(tree.update_tree, self.ecflow_client.host, self.ecflow_client.port, defs)
-            self.notify("Tree Refreshed")
+            self.call_from_thread(self.notify, "Tree Refreshed")
         except Exception as e:
-            self.notify(f"Refresh Error: {e}", severity="error")
+            self.call_from_thread(self.notify, f"Refresh Error: {e}", severity="error")
 
     def get_selected_path(self) -> str | None:
         """
@@ -241,10 +241,10 @@ class Ectop(App):
         """Fetch Output, Script, and Job files for the selected node."""
         path = self.get_selected_path()
         if not path or not self.ecflow_client:
-            self.notify("No node selected", severity="warning")
+            self.call_from_thread(self.notify, "No node selected", severity="warning")
             return
 
-        self.notify(f"Loading files for {path}...")
+        self.call_from_thread(self.notify, f"Loading files for {path}...")
         content_area = self.query_one("#main_content", MainContent)
 
         # 1. Output Log
@@ -285,10 +285,10 @@ class Ectop(App):
         try:
             method = getattr(self.ecflow_client, command_name)
             method(path)
-            self.notify(f"{command_name.replace('_', ' ').capitalize()}: {path}")
+            self.call_from_thread(self.notify, f"{command_name.replace('_', ' ').capitalize()}: {path}")
             self.action_refresh()
         except Exception as e:
-            self.notify(f"Error: {e}", severity="error")
+            self.call_from_thread(self.notify, f"Error: {e}", severity="error")
 
     def action_suspend(self) -> None:
         """Suspend the selected node."""
@@ -351,7 +351,7 @@ class Ectop(App):
         """Open the node script in an editor and update it on the server."""
         path = self.get_selected_path()
         if not path or not self.ecflow_client:
-            self.notify("No node selected", severity="warning")
+            self.call_from_thread(self.notify, "No node selected", severity="warning")
             return
 
         try:
@@ -363,7 +363,7 @@ class Ectop(App):
             self.call_from_thread(self._run_editor, temp_path, path, content)
 
         except Exception as e:
-            self.notify(f"Edit Error: {e}", severity="error")
+            self.call_from_thread(self.notify, f"Edit Error: {e}", severity="error")
 
     def _run_editor(self, temp_path: str, path: str, old_content: str) -> None:
         """
@@ -408,12 +408,12 @@ class Ectop(App):
             if new_content != old_content:
                 if self.ecflow_client:
                     self.ecflow_client.alter(path, "change", "script", new_content)
-                    self.notify("Script updated on server")
+                    self.call_from_thread(self.notify, "Script updated on server")
                     self.call_from_thread(self._prompt_requeue, path)
             else:
-                self.notify("No changes detected")
+                self.call_from_thread(self.notify, "No changes detected")
         except Exception as e:
-            self.notify(f"Update Error: {e}", severity="error")
+            self.call_from_thread(self.notify, f"Update Error: {e}", severity="error")
 
     def _prompt_requeue(self, path: str) -> None:
         """

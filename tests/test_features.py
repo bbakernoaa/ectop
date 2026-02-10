@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
+
 from ectop.app import Ectop
 from ectop.widgets.content import MainContent  # noqa: E402
 from ectop.widgets.sidebar import SuiteTree  # noqa: E402

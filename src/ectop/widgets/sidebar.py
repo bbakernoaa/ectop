@@ -74,7 +74,7 @@ class SuiteTree(Tree[str]):
 
         # Family and Suite have 'nodes' attribute, Task doesn't.
         # However, they all inherit from ecflow.Node.
-        is_family = isinstance(ecflow_node, ecflow.Family | ecflow.Suite)
+        is_family = isinstance(ecflow_node, (ecflow.Family, ecflow.Suite))
         type_icon = "📂" if is_family else "⚙️"
 
         label = Text(f"{icon} {type_icon} {ecflow_node.name()} ")
