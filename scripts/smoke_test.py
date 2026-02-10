@@ -1,9 +1,11 @@
 import os
-import time
-import subprocess
-import ecflow
-import sys
 import shutil
+import subprocess
+import sys
+import time
+
+import ecflow
+
 
 def run_smoke_test():
     ecf_port = 3145
@@ -24,13 +26,13 @@ def run_smoke_test():
     client = ecflow.Client("localhost", ecf_port)
     try:
         # Give it a moment to start
-        for i in range(10):
+        for _i in range(10):
             time.sleep(1)
             try:
                 client.ping()
                 print("Ping successful!")
                 break
-            except:
+            except Exception:
                 continue
         else:
             print("Failed to ping server after 10 seconds")
@@ -57,7 +59,7 @@ def run_smoke_test():
         try:
             client.halt_server()
             client.terminate_server()
-        except:
+        except Exception:
             server_process.terminate()
         server_process.wait(timeout=5)
         print("Server stopped.")
