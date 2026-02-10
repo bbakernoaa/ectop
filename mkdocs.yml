@@ -13,4 +13,6 @@ plugins:
 
 nav:
   - Home: index.md
+  - Architecture: architecture.md
   - Reference: reference.md
+  - Contributing: contributing.md
