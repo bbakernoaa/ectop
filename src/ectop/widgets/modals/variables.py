@@ -6,7 +6,6 @@ Modal screen for viewing and editing ecFlow variables.
     If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
-
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding

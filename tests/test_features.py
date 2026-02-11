@@ -1,17 +1,41 @@
+# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+"""
+Tests for various features of ectop.
+
+.. note::
+    If you modify features, API, or usage, you MUST update the documentation immediately.
+"""
+
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 from ectop.app import Ectop
-from ectop.widgets.content import MainContent  # noqa: E402
-from ectop.widgets.sidebar import SuiteTree  # noqa: E402
+from ectop.widgets.content import MainContent
+from ectop.widgets.sidebar import SuiteTree
 
 
 @pytest.fixture
-def app():
+def app() -> Ectop:
+    """
+    Fixture for the Ectop application.
+
+    Returns
+    -------
+    Ectop
+        The application instance.
+    """
     return Ectop()
 
 
-def test_app_bindings(app):
+def test_app_bindings(app: Ectop) -> None:
+    """
+    Test that the application has the expected key bindings.
+
+    Parameters
+    ----------
+    app : Ectop
+        The application instance.
+    """
     bindings = {b.key: b.action for b in app.BINDINGS}
     assert "/" in bindings
     assert "w" in bindings
@@ -20,7 +44,8 @@ def test_app_bindings(app):
     assert "v" in bindings
 
 
-def test_search_logic():
+def test_search_logic() -> None:
+    """Test the search logic in SuiteTree."""
     # Create mock nodes
     node1 = MagicMock()
     node1.label = "task1"
@@ -63,7 +88,8 @@ def test_search_logic():
     tree.select_by_path.assert_called_with("/suite/post_proc")
 
 
-def test_live_log_update():
+def test_live_log_update() -> None:
+    """Test the live log update mechanism in MainContent."""
     content_area = MainContent()
     # Mock the RichLog widget
     rich_log = MagicMock()
@@ -78,7 +104,8 @@ def test_live_log_update():
     assert content_area.last_log_size == len("initial content added more")
 
 
-def test_why_inspector_parsing():
+def test_why_inspector_parsing() -> None:
+    """Test trigger expression parsing in WhyInspector."""
     from ectop.widgets.modals.why import WhyInspector
 
     client = MagicMock()
@@ -92,7 +119,8 @@ def test_why_inspector_parsing():
     parent_ui_node.add.assert_any_call("AND (All must be true)", expand=True)
 
 
-def test_variable_tweaker_refresh():
+def test_variable_tweaker_refresh() -> None:
+    """Test variable refresh logic in VariableTweaker."""
     from ectop.widgets.modals.variables import VariableTweaker
 
     client = MagicMock()

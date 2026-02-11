@@ -1,3 +1,4 @@
+# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
 import os
 import shutil
 import subprocess

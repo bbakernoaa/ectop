@@ -1,3 +1,11 @@
+# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+"""
+Tests for newly added features in ectop.
+
+.. note::
+    If you modify features, API, or usage, you MUST update the documentation immediately.
+"""
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -5,7 +13,7 @@ from ectop.app import Ectop, EctopCommands
 from ectop.widgets.statusbar import StatusBar
 
 
-def test_status_bar_update():
+def test_status_bar_update() -> None:
     """Test that the status bar updates its internal state correctly."""
     sb = StatusBar()
     sb.update_status("myhost", 1234, "Connected")
@@ -14,7 +22,7 @@ def test_status_bar_update():
     assert sb.last_sync != "Never"
 
 
-def test_status_bar_render():
+def test_status_bar_render() -> None:
     """Test that the status bar renders correctly."""
     sb = StatusBar()
     sb.update_status("myhost", 1234, "Connected")
@@ -24,7 +32,7 @@ def test_status_bar_render():
 
 
 @pytest.mark.asyncio
-async def test_ectop_commands_provider():
+async def test_ectop_commands_provider() -> None:
     """Test the EctopCommands provider yields hits."""
     app = Ectop()
     # Mock some basic app properties/methods needed by the provider
