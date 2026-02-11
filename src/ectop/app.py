@@ -3,6 +3,8 @@ Main application class for ectop.
 
 .. note::
     If you modify features, API, or usage, you MUST update the documentation immediately.
+
+If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
 import os
@@ -13,6 +15,7 @@ from typing import Any
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
+from textual.command import Hit, Hits, Provider
 from textual.containers import Container, Horizontal
 from textual.widgets import Footer, Header, Input
 
@@ -22,10 +25,59 @@ from ectop.widgets.modals.variables import VariableTweaker
 from ectop.widgets.modals.why import WhyInspector
 from ectop.widgets.search import SearchBox
 from ectop.widgets.sidebar import SuiteTree
+from ectop.widgets.statusbar import StatusBar
 
 # --- Configuration ---
 ECFLOW_HOST: str = "localhost"
 ECFLOW_PORT: int = 3141
+
+
+class EctopCommands(Provider):
+    """
+    Command provider for ectop.
+    """
+
+    async def search(self, query: str) -> Hits:
+        """
+        Search for commands.
+
+        Parameters
+        ----------
+        query : str
+            The search query.
+
+        Yields
+        ------
+        Hit
+            A command hit.
+        """
+        matcher = self.matcher(query)
+        app = self.app
+        assert isinstance(app, Ectop)
+
+        commands = [
+            ("Refresh Tree", app.action_refresh, "Refresh the ecFlow suite tree"),
+            ("Search Nodes", app.action_search, "Search for a node by name or path"),
+            ("Suspend Node", app.action_suspend, "Suspend the currently selected node"),
+            ("Resume Node", app.action_resume, "Resume the currently selected node"),
+            ("Kill Node", app.action_kill, "Kill the currently selected node"),
+            ("Force Complete", app.action_force, "Force complete the currently selected node"),
+            ("Why?", app.action_why, "Inspect why a node is not running"),
+            ("Variables", app.action_variables, "View/Edit node variables"),
+            ("Edit Script", app.action_edit_script, "Edit and rerun node script"),
+            ("Toggle Live Log", app.action_toggle_live, "Toggle live log updates"),
+            ("Quit", app.action_quit, "Quit the application"),
+        ]
+
+        for name, action, help_text in commands:
+            score = matcher.match(name)
+            if score > 0:
+                yield Hit(
+                    score,
+                    matcher.highlight(name),
+                    action,
+                    help=help_text,
+                )
 
 
 class Ectop(App):
@@ -39,6 +91,13 @@ class Ectop(App):
     CSS = """
     Screen {
         background: #1a1b26;
+    }
+
+    StatusBar {
+        dock: bottom;
+        height: 1;
+        background: #16161e;
+        color: #a9b1d6;
     }
 
     /* Left Sidebar (Tree) */
@@ -147,8 +206,11 @@ class Ectop(App):
     }
     """
 
+    COMMANDS = App.COMMANDS | {EctopCommands}
+
     BINDINGS = [
         Binding("q", "quit", "Quit"),
+        Binding("p", "command_palette", "Command Palette"),
         Binding("r", "refresh", "Refresh Tree"),
         Binding("l", "load_node", "Load Logs/Script"),
         Binding("s", "suspend", "Suspend"),
@@ -182,6 +244,7 @@ class Ectop(App):
             Container(SuiteTree("ecFlow Server", id="suite_tree"), id="sidebar"),
             MainContent(id="main_content"),
         )
+        yield StatusBar(id="status_bar")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -213,12 +276,15 @@ class Ectop(App):
             return
 
         tree = self.query_one("#suite_tree", SuiteTree)
+        status_bar = self.query_one("#status_bar", StatusBar)
         try:
             self.ecflow_client.sync_local()
             defs = self.ecflow_client.get_defs()
             self.call_from_thread(tree.update_tree, self.ecflow_client.host, self.ecflow_client.port, defs)
+            self.call_from_thread(status_bar.update_status, self.ecflow_client.host, self.ecflow_client.port)
             self.call_from_thread(self.notify, "Tree Refreshed")
         except Exception as e:
+            self.call_from_thread(status_bar.update_status, self.ecflow_client.host, self.ecflow_client.port, status=f"Error: {e}")
             self.call_from_thread(self.notify, f"Refresh Error: {e}", severity="error")
 
     def get_selected_path(self) -> str | None:

@@ -3,6 +3,8 @@ Sidebar widget for the ecFlow suite tree.
 
 .. note::
     If you modify features, API, or usage, you MUST update the documentation immediately.
+
+If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
 from typing import Any
@@ -35,10 +37,11 @@ class SuiteTree(Tree[str]):
             Keyword arguments for the Tree widget.
         """
         super().__init__(*args, **kwargs)
+        self.defs: ecflow.Defs | None = None
 
     def update_tree(self, client_host: str, client_port: int, defs: ecflow.Defs | None) -> None:
         """
-        Rebuild the tree from ecFlow definitions.
+        Rebuild the tree from ecFlow definitions using lazy loading.
 
         Parameters
         ----------
@@ -49,6 +52,7 @@ class SuiteTree(Tree[str]):
         defs : ecflow.Defs | None
             The ecFlow definitions to display.
         """
+        self.defs = defs
         self.clear()
         if not defs:
             self.root.label = "Server Empty"
@@ -56,11 +60,11 @@ class SuiteTree(Tree[str]):
 
         self.root.label = f"🌍 {client_host}:{client_port}"
         for suite in defs.suites:
-            self._populate_tree(self.root, suite)
+            self._add_node_to_ui(self.root, suite)
 
-    def _populate_tree(self, parent_ui_node: TreeNode[str], ecflow_node: ecflow.Node) -> None:
+    def _add_node_to_ui(self, parent_ui_node: TreeNode[str], ecflow_node: ecflow.Node) -> TreeNode[str]:
         """
-        Recursively add ecflow nodes to the UI tree.
+        Add a single ecflow node to the UI tree.
 
         Parameters
         ----------
@@ -68,14 +72,17 @@ class SuiteTree(Tree[str]):
             The parent node in the Textual tree.
         ecflow_node : ecflow.Node
             The ecFlow node to add.
+
+        Returns
+        -------
+        TreeNode[str]
+            The newly created UI node.
         """
         state = str(ecflow_node.get_state())
         icon = STATE_MAP.get(state, "⚪")
 
-        # Family and Suite have 'nodes' attribute, Task doesn't.
-        # However, they all inherit from ecflow.Node.
-        is_family = isinstance(ecflow_node, (ecflow.Family, ecflow.Suite))
-        type_icon = "📂" if is_family else "⚙️"
+        is_container = isinstance(ecflow_node, (ecflow.Family, ecflow.Suite))
+        type_icon = "📂" if is_container else "⚙️"
 
         label = Text(f"{icon} {type_icon} {ecflow_node.name()} ")
         label.append(f"[{state}]", style="bold italic")
@@ -86,13 +93,49 @@ class SuiteTree(Tree[str]):
             expand=False,
         )
 
-        if hasattr(ecflow_node, "nodes"):
-            for child in ecflow_node.nodes:
-                self._populate_tree(new_ui_node, child)
+        # If it's a container and has children, add a placeholder for lazy loading
+        if is_container and hasattr(ecflow_node, "nodes") and len(list(ecflow_node.nodes)) > 0:
+            new_ui_node.add("loading...", allow_expand=False)
+
+        return new_ui_node
+
+    def on_tree_node_expanded(self, event: Tree.NodeExpanded[str]) -> None:
+        """
+        Handle node expansion to load children on demand.
+
+        Parameters
+        ----------
+        event : Tree.NodeExpanded[str]
+            The expansion event.
+        """
+        node = event.node
+        self._load_children(node)
+
+    def _load_children(self, ui_node: TreeNode[str]) -> None:
+        """
+        Load children for a UI node if they haven't been loaded yet.
+
+        Parameters
+        ----------
+        ui_node : TreeNode[str]
+            The UI node to load children for.
+        """
+        if not ui_node.data or not self.defs:
+            return
+
+        # Check if we have the placeholder
+        if len(ui_node.children) == 1 and str(ui_node.children[0].label) == "loading...":
+            ui_node.children[0].remove()
+            ecflow_node = self.defs.find_abs_node(ui_node.data)
+            if ecflow_node and hasattr(ecflow_node, "nodes"):
+                for child in ecflow_node.nodes:
+                    self._add_node_to_ui(ui_node, child)
 
     def find_and_select(self, query: str) -> bool:
         """
-        Find nodes matching query and select the next one.
+        Find nodes matching query in the ecFlow definitions and select them.
+
+        This handles searching through unloaded parts of the tree.
 
         Parameters
         ----------
@@ -104,21 +147,62 @@ class SuiteTree(Tree[str]):
         bool
             True if a match was found and selected, False otherwise.
         """
+        if not self.defs:
+            return False
+
         query = query.lower()
-        all_nodes = list(self.root.descendants)
+        all_paths: list[str] = []
+        for suite in self.defs.suites:
+            all_paths.append(suite.abs_node_path())
+            for node in suite.get_all_nodes():
+                all_paths.append(node.abs_node_path())
 
         # Start from current cursor if possible
+        current_path = self.cursor_node.data if self.cursor_node else None
         start_index = 0
-        if self.cursor_node in all_nodes:
-            start_index = all_nodes.index(self.cursor_node) + 1
+        if current_path and current_path in all_paths:
+            start_index = all_paths.index(current_path) + 1
 
         # Search from start_index to end, then wrap around
-        for i in range(len(all_nodes)):
-            node = all_nodes[(start_index + i) % len(all_nodes)]
-            if query in str(node.label).lower() or (node.data and query in node.data.lower()):
-                self._select_and_reveal(node)
+        for i in range(len(all_paths)):
+            path = all_paths[(start_index + i) % len(all_paths)]
+            if query in path.lower():
+                self.select_by_path(path)
                 return True
         return False
+
+    def select_by_path(self, path: str) -> None:
+        """
+        Select a node by its absolute ecFlow path, expanding parents as needed.
+
+        Parameters
+        ----------
+        path : str
+            The absolute path of the node to select.
+        """
+        if path == "/":
+            self.select_node(self.root)
+            return
+
+        parts = path.strip("/").split("/")
+        current_ui_node = self.root
+
+        current_path = ""
+        for part in parts:
+            current_path += "/" + part
+            self._load_children(current_ui_node)
+            current_ui_node.expand()
+
+            found = False
+            for child in current_ui_node.children:
+                if child.data == current_path:
+                    current_ui_node = child
+                    found = True
+                    break
+            if not found:
+                return
+
+        self._select_and_reveal(current_ui_node)
 
     def _select_and_reveal(self, node: TreeNode[str]) -> None:
         """

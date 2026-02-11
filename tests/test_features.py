@@ -36,6 +36,7 @@ def test_search_logic():
     # Test substring match
     # We use __new__ to avoid calling __init__ which triggers Textual internals
     tree = SuiteTree.__new__(SuiteTree)
+    tree.defs = MagicMock()
     tree.root = MagicMock()
     tree.root.descendants = [node1, node2]
 
@@ -46,8 +47,21 @@ def test_search_logic():
     # We need to manually call the method since it's an instance method
     with patch.object(SuiteTree, "cursor_node", new_callable=PropertyMock) as mock_cursor:
         mock_cursor.return_value = None
+        # Mocking the definition walk
+        suite = MagicMock()
+        suite.abs_node_path.return_value = "/suite"
+        node1_ecf = MagicMock()
+        node1_ecf.abs_node_path.return_value = "/suite/task1"
+        node2_ecf = MagicMock()
+        node2_ecf.abs_node_path.return_value = "/suite/post_proc"
+        suite.get_all_nodes.return_value = [node1_ecf, node2_ecf]
+        tree.defs.suites = [suite]
+
+        # select_by_path is called instead of _select_and_reveal directly in find_and_select
+        tree.select_by_path = MagicMock()
+
         assert SuiteTree.find_and_select(tree, "post") is True
-    tree.select_node.assert_called_with(node2)
+    tree.select_by_path.assert_called_with("/suite/post_proc")
 
 
 def test_live_log_update():

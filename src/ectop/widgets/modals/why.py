@@ -3,6 +3,8 @@ Modal screen for inspecting why an ecFlow node is not running.
 
 .. note::
     If you modify features, API, or usage, you MUST update the documentation immediately.
+
+If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
 import re
@@ -97,21 +99,11 @@ class WhyInspector(ModalScreen[None]):
 
             try:
                 tree = self.app.query_one("#suite_tree", SuiteTree)
-                # Find the node in the main tree
-                for n in tree.root.descendants:
-                    if n.data == node_path:
-                        tree.select_node(n)
-                        # Expand parents
-                        p = n.parent
-                        while p:
-                            p.expand()
-                            p = p.parent
-                        tree.scroll_to_node(n)
-                        self.app.notify(f"Jumped to {node_path}")
-                        self.app.pop_screen()
-                        break
-            except Exception:
-                pass
+                tree.select_by_path(node_path)
+                self.app.notify(f"Jumped to {node_path}")
+                self.app.pop_screen()
+            except Exception as e:
+                self.app.notify(f"Failed to jump: {e}", severity="error")
 
     @work(thread=True)
     def refresh_deps(self) -> None:
@@ -164,6 +156,16 @@ class WhyInspector(ModalScreen[None]):
         defs : Any
             The ecFlow definitions.
         """
+        # Server's "Why" explanation
+        try:
+            # Standard ecflow node.get_why() might require a client sync
+            # but usually it's available on the node if it was synced.
+            why_str = node.get_why()
+            if why_str:
+                tree.root.add(f"💡 Reason: [italic]{why_str}[/]", expand=True)
+        except AttributeError:
+            pass
+
         # Triggers
         trigger = node.get_trigger()
         if trigger:
@@ -176,10 +178,30 @@ class WhyInspector(ModalScreen[None]):
             c_node = tree.root.add("Complete Expression")
             self._parse_expression(c_node, complete.get_expression(), defs)
 
+        # Limits
+        self._add_limit_deps(tree.root, node)
+
         # Times, Dates, Crons
         self._add_time_deps(tree.root, node)
 
         tree.root.expand_all()
+
+    def _add_limit_deps(self, parent_ui_node: TreeNode[str], node: Any) -> None:
+        """
+        Add limit-based dependencies to the UI tree.
+
+        Parameters
+        ----------
+        parent_ui_node : TreeNode[str]
+            The parent node in the Textual tree.
+        node : Any
+            The ecFlow node to inspect.
+        """
+        inlimits = list(node.inlimits)
+        if inlimits:
+            limit_node = parent_ui_node.add("Limits")
+            for il in inlimits:
+                limit_node.add(f"🔒 Limit: {il.name()} (Path: {il.value()})")
 
     def _parse_expression(self, parent_ui_node: TreeNode[str], expr_str: str, defs: Any) -> None:
         """
