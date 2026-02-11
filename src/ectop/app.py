@@ -19,6 +19,7 @@ from textual.containers import Container, Horizontal
 from textual.widgets import Footer, Header, Input
 
 from ectop.client import EcflowClient
+from ectop.constants import DEFAULT_HOST, DEFAULT_PORT, DEFAULT_REFRESH_INTERVAL
 from ectop.widgets.content import MainContent
 from ectop.widgets.modals.variables import VariableTweaker
 from ectop.widgets.modals.why import WhyInspector
@@ -219,18 +220,24 @@ class Ectop(App):
         Binding("v", "variables", "Variables"),
     ]
 
-    def __init__(self, host: str = "localhost", port: int = 3141, refresh_interval: float = 2.0, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        host: str = DEFAULT_HOST,
+        port: int = DEFAULT_PORT,
+        refresh_interval: float = DEFAULT_REFRESH_INTERVAL,
+        **kwargs: Any,
+    ) -> None:
         """
         Initialize the application.
 
         Parameters
         ----------
         host : str, optional
-            The ecFlow server hostname, by default "localhost".
+            The ecFlow server hostname, by default DEFAULT_HOST.
         port : int, optional
-            The ecFlow server port, by default 3141.
+            The ecFlow server port, by default DEFAULT_PORT.
         refresh_interval : float, optional
-            The interval for live log updates, by default 2.0.
+            The interval for live log updates, by default DEFAULT_REFRESH_INTERVAL.
         **kwargs : Any
             Additional keyword arguments for the Textual App.
         """

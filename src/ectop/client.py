@@ -13,17 +13,6 @@ import ecflow
 if TYPE_CHECKING:
     from ecflow import Defs
 
-# --- State Icons ---
-STATE_MAP: dict[str, str] = {
-    "unknown": "⚪",
-    "complete": "🟢",
-    "queued": "🔵",
-    "aborted": "🔴",
-    "submitted": "🟡",
-    "active": "🔥",
-    "suspended": "🟠",
-}
-
 
 class EcflowClient:
     """
@@ -61,10 +50,18 @@ class EcflowClient:
         """
         Ping the ecFlow server to check connectivity.
 
+        Returns
+        -------
+        None
+
         Raises
         ------
         RuntimeError
             If the server is unreachable or the ping fails.
+
+        Notes
+        -----
+        This is a blocking network call and should be run in a background worker.
         """
         try:
             self.client.ping()
@@ -75,10 +72,18 @@ class EcflowClient:
         """
         Synchronize the local definition with the server.
 
+        Returns
+        -------
+        None
+
         Raises
         ------
         RuntimeError
             If synchronization fails.
+
+        Notes
+        -----
+        This is a blocking network call and should be run in a background worker.
         """
         try:
             self.client.sync_local()

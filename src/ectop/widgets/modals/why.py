@@ -112,10 +112,18 @@ class WhyInspector(ModalScreen[None]):
         """
         Fetch dependencies from the server and rebuild the tree.
 
+        Returns
+        -------
+        None
+
         Raises
         ------
         RuntimeError
             If server synchronization fails.
+
+        Notes
+        -----
+        This method runs in a background thread and updates the UI via `call_from_thread`.
         """
         tree = self.query_one("#dep_tree", Tree)
         self.call_from_thread(tree.clear)
