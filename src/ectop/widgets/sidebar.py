@@ -14,7 +14,7 @@ from textual import work
 from textual.widgets import Tree
 from textual.widgets.tree import TreeNode
 
-from ectop.client import STATE_MAP
+from ectop.constants import STATE_MAP
 
 if TYPE_CHECKING:
     from ecflow import Defs, Node
@@ -54,6 +54,14 @@ class SuiteTree(Tree[str]):
             The port of the ecFlow server.
         defs : ecflow.Defs | None
             The ecFlow definitions to display.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This method is typically called from the main thread after a sync.
         """
         self.defs = defs
         self.clear()
@@ -114,7 +122,7 @@ class SuiteTree(Tree[str]):
         node = event.node
         self._load_children(node)
 
-    def _load_children(self, ui_node: TreeNode[str]) -> None:
+    def _load_children(self, ui_node: TreeNode[str], sync: bool = False) -> None:
         """
         Load children for a UI node if they haven't been loaded yet.
 
@@ -122,6 +130,20 @@ class SuiteTree(Tree[str]):
         ----------
         ui_node : TreeNode[str]
             The UI node to load children for.
+        sync : bool, optional
+            Whether to load children synchronously, by default False.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        None
+
+        Notes
+        -----
+        Uses `_load_children_worker` for async loading.
         """
         if not ui_node.data or not self.defs:
             return
@@ -129,7 +151,13 @@ class SuiteTree(Tree[str]):
         # Check if we have the placeholder
         if len(ui_node.children) == 1 and str(ui_node.children[0].label) == "loading...":
             ui_node.children[0].remove()
-            self._load_children_worker(ui_node, ui_node.data)
+            if sync:
+                ecflow_node = self.defs.find_abs_node(ui_node.data)
+                if ecflow_node and hasattr(ecflow_node, "nodes"):
+                    for child in ecflow_node.nodes:
+                        self._add_node_to_ui(ui_node, child)
+            else:
+                self._load_children_worker(ui_node, ui_node.data)
 
     @work(thread=True)
     def _load_children_worker(self, ui_node: TreeNode[str], node_path: str) -> None:
@@ -214,7 +242,8 @@ class SuiteTree(Tree[str]):
         current_path = ""
         for part in parts:
             current_path += "/" + part
-            self._load_children(current_ui_node)
+            # Load children synchronously to ensure they are available for selection
+            self._load_children(current_ui_node, sync=True)
             current_ui_node.expand()
 
             found = False

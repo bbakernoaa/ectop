@@ -9,7 +9,6 @@ Tests for various features of ectop.
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
-
 from ectop.app import Ectop
 from ectop.widgets.content import MainContent
 from ectop.widgets.sidebar import SuiteTree

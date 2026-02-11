@@ -92,10 +92,18 @@ class VariableTweaker(ModalScreen[None]):
         """
         Fetch variables from the server and refresh the table.
 
+        Returns
+        -------
+        None
+
         Raises
         ------
         RuntimeError
             If server synchronization fails.
+
+        Notes
+        -----
+        This method runs in a background thread and updates the UI via `call_from_thread`.
         """
         try:
             self.client.sync_local()
