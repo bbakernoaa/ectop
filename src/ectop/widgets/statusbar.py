@@ -1,3 +1,4 @@
+# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
 """
 Status bar widget for ectop.
 
@@ -6,6 +7,7 @@ Status bar widget for ectop.
 """
 
 from datetime import datetime
+from typing import Any
 
 from rich.text import Text
 from textual.widgets import Static
@@ -19,8 +21,17 @@ class StatusBar(Static):
         If you modify features, API, or usage, you MUST update the documentation immediately.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
-        """Initialize the StatusBar."""
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Initialize the StatusBar.
+
+        Parameters
+        ----------
+        *args : Any
+            Positional arguments for the Static widget.
+        **kwargs : Any
+            Keyword arguments for the Static widget.
+        """
         super().__init__(*args, **kwargs)
         self.server_info: str = "Disconnected"
         self.last_sync: str = "Never"

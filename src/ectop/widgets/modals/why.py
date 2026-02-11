@@ -1,14 +1,13 @@
+# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
 """
 Modal screen for inspecting why an ecFlow node is not running.
 
 .. note::
     If you modify features, API, or usage, you MUST update the documentation immediately.
-
-If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
 import re
-from typing import Any
+from typing import TYPE_CHECKING
 
 from textual import work
 from textual.app import ComposeResult
@@ -19,6 +18,9 @@ from textual.widgets import Button, Static, Tree
 from textual.widgets.tree import TreeNode
 
 from ectop.client import EcflowClient
+
+if TYPE_CHECKING:
+    from ecflow import Defs, Node
 
 
 class WhyInspector(ModalScreen[None]):
@@ -143,7 +145,7 @@ class WhyInspector(ModalScreen[None]):
         """
         tree.root.label = label
 
-    def _populate_dep_tree(self, tree: Tree, node: Any, defs: Any) -> None:
+    def _populate_dep_tree(self, tree: Tree, node: "Node", defs: "Defs") -> None:
         """
         Populate the dependency tree UI.
 
@@ -151,9 +153,9 @@ class WhyInspector(ModalScreen[None]):
         ----------
         tree : Tree
             The tree widget to populate.
-        node : Any
+        node : Node
             The ecFlow node.
-        defs : Any
+        defs : Defs
             The ecFlow definitions.
         """
         # Server's "Why" explanation
@@ -186,7 +188,7 @@ class WhyInspector(ModalScreen[None]):
 
         tree.root.expand_all()
 
-    def _add_limit_deps(self, parent_ui_node: TreeNode[str], node: Any) -> None:
+    def _add_limit_deps(self, parent_ui_node: TreeNode[str], node: "Node") -> None:
         """
         Add limit-based dependencies to the UI tree.
 
@@ -194,7 +196,7 @@ class WhyInspector(ModalScreen[None]):
         ----------
         parent_ui_node : TreeNode[str]
             The parent node in the Textual tree.
-        node : Any
+        node : Node
             The ecFlow node to inspect.
         """
         inlimits = list(node.inlimits)
@@ -203,7 +205,7 @@ class WhyInspector(ModalScreen[None]):
             for il in inlimits:
                 limit_node.add(f"🔒 Limit: {il.name()} (Path: {il.value()})")
 
-    def _parse_expression(self, parent_ui_node: TreeNode[str], expr_str: str, defs: Any) -> None:
+    def _parse_expression(self, parent_ui_node: TreeNode[str], expr_str: str, defs: "Defs") -> None:
         """
         Parse an ecFlow expression and add it to the UI tree.
 
@@ -213,7 +215,7 @@ class WhyInspector(ModalScreen[None]):
             The parent node in the Textual tree.
         expr_str : str
             The expression string to parse.
-        defs : Any
+        defs : Defs
             The ecFlow definitions for node lookups.
         """
         if " or " in expr_str:
@@ -247,7 +249,7 @@ class WhyInspector(ModalScreen[None]):
         else:
             parent_ui_node.add(f"📝 {expr_str}")
 
-    def _add_time_deps(self, parent_ui_node: TreeNode[str], node: Any) -> None:
+    def _add_time_deps(self, parent_ui_node: TreeNode[str], node: "Node") -> None:
         """
         Add time-based dependencies to the UI tree.
 
@@ -255,7 +257,7 @@ class WhyInspector(ModalScreen[None]):
         ----------
         parent_ui_node : TreeNode[str]
             The parent node in the Textual tree.
-        node : Any
+        node : Node
             The ecFlow node to inspect.
         """
         for t in node.get_times():

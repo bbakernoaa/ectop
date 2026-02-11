@@ -1,3 +1,4 @@
+# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
 """
 ecFlow Client Wrapper for ectop.
 
@@ -5,7 +6,12 @@ ecFlow Client Wrapper for ectop.
     If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
+from typing import TYPE_CHECKING
+
 import ecflow
+
+if TYPE_CHECKING:
+    from ecflow import Defs
 
 # --- State Icons ---
 STATE_MAP: dict[str, str] = {
@@ -79,7 +85,7 @@ class EcflowClient:
         except RuntimeError as e:
             raise RuntimeError(f"Failed to sync with ecFlow server: {e}") from e
 
-    def get_defs(self) -> ecflow.Defs | None:
+    def get_defs(self) -> "Defs | None":
         """
         Retrieve the current definitions from the client.
 

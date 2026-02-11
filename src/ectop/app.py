@@ -1,10 +1,9 @@
+# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
 """
 Main application class for ectop.
 
 .. note::
     If you modify features, API, or usage, you MUST update the documentation immediately.
-
-If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
 import os
@@ -26,10 +25,6 @@ from ectop.widgets.modals.why import WhyInspector
 from ectop.widgets.search import SearchBox
 from ectop.widgets.sidebar import SuiteTree
 from ectop.widgets.statusbar import StatusBar
-
-# --- Configuration ---
-ECFLOW_HOST: str = "localhost"
-ECFLOW_PORT: int = 3141
 
 
 class EctopCommands(Provider):
@@ -224,9 +219,25 @@ class Ectop(App):
         Binding("v", "variables", "Variables"),
     ]
 
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize the application."""
+    def __init__(self, host: str = "localhost", port: int = 3141, refresh_interval: float = 2.0, **kwargs: Any) -> None:
+        """
+        Initialize the application.
+
+        Parameters
+        ----------
+        host : str, optional
+            The ecFlow server hostname, by default "localhost".
+        port : int, optional
+            The ecFlow server port, by default 3141.
+        refresh_interval : float, optional
+            The interval for live log updates, by default 2.0.
+        **kwargs : Any
+            Additional keyword arguments for the Textual App.
+        """
         super().__init__(**kwargs)
+        self.host = host
+        self.port = port
+        self.refresh_interval = refresh_interval
         self.ecflow_client: EcflowClient | None = None
 
     def compose(self) -> ComposeResult:
@@ -250,13 +261,13 @@ class Ectop(App):
     def on_mount(self) -> None:
         """Handle the mount event to start the application."""
         self._initial_connect()
-        self.set_interval(2.0, self._live_log_tick)
+        self.set_interval(self.refresh_interval, self._live_log_tick)
 
     @work(thread=True)
     def _initial_connect(self) -> None:
         """Perform initial connection to the ecFlow server."""
         try:
-            self.ecflow_client = EcflowClient(ECFLOW_HOST, ECFLOW_PORT)
+            self.ecflow_client = EcflowClient(self.host, self.port)
             self.ecflow_client.ping()
             # Initial refresh
             self.action_refresh()

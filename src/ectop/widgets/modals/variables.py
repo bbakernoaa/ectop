@@ -1,9 +1,12 @@
+# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
 """
 Modal screen for viewing and editing ecFlow variables.
 
 .. note::
     If you modify features, API, or usage, you MUST update the documentation immediately.
 """
+
+from typing import TYPE_CHECKING
 
 from textual import work
 from textual.app import ComposeResult

@@ -1,13 +1,12 @@
+# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
 """
 Sidebar widget for the ecFlow suite tree.
 
 .. note::
     If you modify features, API, or usage, you MUST update the documentation immediately.
-
-If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import ecflow
 from rich.text import Text
@@ -15,6 +14,9 @@ from textual.widgets import Tree
 from textual.widgets.tree import TreeNode
 
 from ectop.client import STATE_MAP
+
+if TYPE_CHECKING:
+    from ecflow import Defs, Node
 
 
 class SuiteTree(Tree[str]):
@@ -37,9 +39,9 @@ class SuiteTree(Tree[str]):
             Keyword arguments for the Tree widget.
         """
         super().__init__(*args, **kwargs)
-        self.defs: ecflow.Defs | None = None
+        self.defs: Defs | None = None
 
-    def update_tree(self, client_host: str, client_port: int, defs: ecflow.Defs | None) -> None:
+    def update_tree(self, client_host: str, client_port: int, defs: "Defs | None") -> None:
         """
         Rebuild the tree from ecFlow definitions using lazy loading.
 
@@ -62,7 +64,7 @@ class SuiteTree(Tree[str]):
         for suite in defs.suites:
             self._add_node_to_ui(self.root, suite)
 
-    def _add_node_to_ui(self, parent_ui_node: TreeNode[str], ecflow_node: ecflow.Node) -> TreeNode[str]:
+    def _add_node_to_ui(self, parent_ui_node: TreeNode[str], ecflow_node: "Node") -> TreeNode[str]:
         """
         Add a single ecflow node to the UI tree.
 
