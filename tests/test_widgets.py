@@ -13,6 +13,7 @@ def test_statusbar_update():
     assert sb.status == "Connected"
     assert sb.last_sync != "Never"
 
+
 def test_searchbox_cancel():
     """Test that SearchBox cancel clears and hides the box."""
     with patch("textual.widgets.Input.app") as mock_app:
@@ -26,6 +27,7 @@ def test_searchbox_cancel():
         assert "visible" not in sb.classes
         mock_app.set_focus.assert_called_once()
 
+
 def test_confirm_modal():
     """Test that ConfirmModal calls the callback on confirm."""
     callback = MagicMock()
@@ -36,6 +38,7 @@ def test_confirm_modal():
 
         callback.assert_called_once()
         mock_app.pop_screen.assert_called_once()
+
 
 def test_confirm_modal_close():
     """Test that ConfirmModal does not call callback on close."""

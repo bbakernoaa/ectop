@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 import ecflow
 from rich.text import Text
+from textual import work
 from textual.widgets import Tree
 from textual.widgets.tree import TreeNode
 
@@ -83,7 +84,7 @@ class SuiteTree(Tree[str]):
         state = str(ecflow_node.get_state())
         icon = STATE_MAP.get(state, "⚪")
 
-        is_container = isinstance(ecflow_node, (ecflow.Family, ecflow.Suite))
+        is_container = isinstance(ecflow_node, ecflow.Family | ecflow.Suite)
         type_icon = "📂" if is_container else "⚙️"
 
         label = Text(f"{icon} {type_icon} {ecflow_node.name()} ")
@@ -128,10 +129,31 @@ class SuiteTree(Tree[str]):
         # Check if we have the placeholder
         if len(ui_node.children) == 1 and str(ui_node.children[0].label) == "loading...":
             ui_node.children[0].remove()
-            ecflow_node = self.defs.find_abs_node(ui_node.data)
-            if ecflow_node and hasattr(ecflow_node, "nodes"):
-                for child in ecflow_node.nodes:
-                    self._add_node_to_ui(ui_node, child)
+            self._load_children_worker(ui_node, ui_node.data)
+
+    @work(thread=True)
+    def _load_children_worker(self, ui_node: TreeNode[str], node_path: str) -> None:
+        """
+        Worker to load children nodes in a background thread.
+
+        Parameters
+        ----------
+        ui_node : TreeNode[str]
+            The UI node to populate.
+        node_path : str
+            The absolute path of the ecFlow node.
+
+        Notes
+        -----
+        UI updates are scheduled back to the main thread using `call_from_thread`.
+        """
+        if not self.defs:
+            return
+
+        ecflow_node = self.defs.find_abs_node(node_path)
+        if ecflow_node and hasattr(ecflow_node, "nodes"):
+            for child in ecflow_node.nodes:
+                self.app.call_from_thread(self._add_node_to_ui, ui_node, child)
 
     def find_and_select(self, query: str) -> bool:
         """

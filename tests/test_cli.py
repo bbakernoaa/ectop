@@ -13,6 +13,7 @@ def test_cli_args():
             mock_app.assert_called_once_with(host="otherhost", port=9999, refresh_interval=5.0)
             mock_app.return_value.run.assert_called_once()
 
+
 def test_cli_env_vars():
     """Test that environment variables are used as defaults in CLI."""
     with patch.dict(os.environ, {"ECF_HOST": "envhost", "ECF_PORT": "8888", "ECTOP_REFRESH": "3.0"}):

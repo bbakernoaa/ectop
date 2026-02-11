@@ -90,7 +90,14 @@ class VariableTweaker(ModalScreen[None]):
 
     @work(thread=True)
     def refresh_vars(self) -> None:
-        """Fetch variables from the server and refresh the table."""
+        """
+        Fetch variables from the server and refresh the table.
+
+        Raises
+        ------
+        RuntimeError
+            If server synchronization fails.
+        """
         try:
             self.client.sync_local()
             defs = self.client.get_defs()

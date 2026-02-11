@@ -1,6 +1,14 @@
+# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
 import asyncio
 import sys
 from unittest.mock import MagicMock
+
+"""
+Script to capture TUI screenshots for documentation.
+
+.. note::
+    If you modify features, API, or usage, you MUST update the documentation immediately.
+"""
 
 # Create a more complete mock for ecflow to allow running without the real library
 mock_ecflow = MagicMock()
@@ -47,6 +55,14 @@ class Suite(Family):
 class Defs:
     def __init__(self, suites=None):
         self.suites = suites or []
+
+    def find_abs_node(self, path):
+        # Very simple mock implementation
+        if path == "/tutorial":
+            return self.suites[0]
+        if path == "/tutorial/ingest":
+            return self.suites[0].nodes[0]
+        return None
 
 
 mock_ecflow.Node = Node

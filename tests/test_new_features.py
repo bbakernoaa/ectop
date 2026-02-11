@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-
 from ectop.app import Ectop, EctopCommands
 from ectop.widgets.statusbar import StatusBar
 

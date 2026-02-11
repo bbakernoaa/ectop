@@ -109,7 +109,14 @@ class WhyInspector(ModalScreen[None]):
 
     @work(thread=True)
     def refresh_deps(self) -> None:
-        """Fetch dependencies from the server and rebuild the tree."""
+        """
+        Fetch dependencies from the server and rebuild the tree.
+
+        Raises
+        ------
+        RuntimeError
+            If server synchronization fails.
+        """
         tree = self.query_one("#dep_tree", Tree)
         self.call_from_thread(tree.clear)
 
