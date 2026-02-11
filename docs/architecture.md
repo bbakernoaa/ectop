@@ -21,7 +21,8 @@ A thin wrapper around `ecflow.Client`. It provides:
 
 ### Widgets (`ectop.widgets`)
 The UI is decomposed into several modular widgets:
-- **SuiteTree**: A customized `Tree` widget that displays the hierarchical structure of ecFlow suites.
+- **SuiteTree**: A customized `Tree` widget that displays the hierarchical structure of ecFlow suites. It uses **lazy loading** to only fetch and render nodes as they are expanded, ensuring high performance for large trees.
+- **StatusBar**: Displays real-time server connection status and the timestamp of the last successful synchronization.
 - **MainContent**: A `TabbedContent` widget that hosts the Log, Script, and Job views.
 - **SearchBox**: A specialized input for live-filtering the suite tree.
 - **Modals**: Lightweight screens for confirmation (`ConfirmModal`), variable editing (`VariableTweaker`), and "Why" inspection (`WhyInspector`).

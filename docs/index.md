@@ -14,8 +14,9 @@
     - **Log Output**: Live view of task logs with optional auto-refresh.
     - **Scripts**: View the original ecFlow script.
     - **Jobs**: Inspect the generated job file.
-- **Search**: Interactive live search to find nodes in large suites.
-- **Why?**: A dedicated "Why" inspector to understand why a node is in its current state (e.g., waiting for triggers).
+- **Search**: Interactive live search to find nodes in large suites, optimized with lazy loading.
+- **Command Palette**: Searchable command interface for quick access to all application actions.
+- **Why?**: A dedicated "Why" inspector to understand why a node is in its current state (e.g., waiting for triggers or limits).
 - **Variable Management**: View and modify node variables (Edit and Add) on the fly.
 - **Interactive Script Editing**: Edit scripts using your preferred local editor (via `$EDITOR`) and update them on the ecFlow server instantly.
 
@@ -60,6 +61,7 @@ Currently, `ectop` defaults to connecting to `localhost:3141`. Future versions w
 | Key | Action |
 |-----|--------|
 | `q` | **Quit** the application |
+| `p` | Open **Command Palette** |
 | `r` | **Refresh** the entire suite tree from the server |
 | `l` | **Load** Logs, Script, and Job files for the selected node |
 | `s` | **Suspend** the selected node |
