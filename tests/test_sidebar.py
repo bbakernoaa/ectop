@@ -156,3 +156,38 @@ def test_select_by_path(mock_defs: MagicMock) -> None:
         assert mock_load.call_count >= 2
         child_s2.expand.assert_called()
         mock_select.assert_called_with(child_t2a)
+
+
+def test_find_and_select_caching(mock_defs: MagicMock) -> None:
+    """
+    Test that find_and_select uses the path cache.
+
+    Parameters
+    ----------
+    mock_defs : MagicMock
+        The mock ecFlow definitions.
+    """
+    tree = SuiteTree.__new__(SuiteTree)
+    tree.defs = mock_defs
+    tree.clear = MagicMock()
+    tree.root = MagicMock()
+
+    with patch.object(SuiteTree, "cursor_node", new=None), patch.object(SuiteTree, "select_by_path") as mock_select, patch.object(
+        SuiteTree, "_add_node_to_ui"
+    ):
+        # First call should build cache
+        tree.find_and_select("t2a")
+        assert hasattr(tree, "_all_paths_cache")
+        assert tree._all_paths_cache is not None
+        assert "/s2/t2a" in tree._all_paths_cache
+        mock_select.assert_called_with("/s2/t2a")
+
+        # Modify defs - but cache should persist until update_tree is called
+        tree.defs.suites = []
+        mock_select.reset_mock()
+        tree.find_and_select("t2a")
+        mock_select.assert_called_with("/s2/t2a")  # Still works from cache
+
+        # update_tree should clear cache
+        tree.update_tree("localhost", 3141, None)
+        assert tree._all_paths_cache is None

@@ -36,3 +36,36 @@ async def test_app_handles_runtime_error():
             assert len(app._notifications) > 0
             notification = list(app._notifications)[0]
             assert "Connection Failed" in str(notification.message)
+
+
+@pytest.mark.asyncio
+async def test_app_actions():
+    """Verify that app actions (suspend, resume, etc.) correctly call the client."""
+    mock_client = MagicMock()
+    with patch("ectop.app.EcflowClient", return_value=mock_client):
+        app = Ectop()
+        # Mock call_from_thread to avoid thread-check issues in run_test
+        app.call_from_thread = lambda callback, *args, **kwargs: callback(*args, **kwargs)
+
+        async with app.run_test() as pilot:
+            # Mock get_selected_path
+            with patch.object(Ectop, "get_selected_path", return_value="/suite/task"):
+                # Test Suspend
+                app.action_suspend()
+                await pilot.pause()
+                mock_client.suspend.assert_called_with("/suite/task")
+
+                # Test Resume
+                app.action_resume()
+                await pilot.pause()
+                mock_client.resume.assert_called_with("/suite/task")
+
+                # Test Kill
+                app.action_kill()
+                await pilot.pause()
+                mock_client.kill.assert_called_with("/suite/task")
+
+                # Test Force Complete
+                app.action_force()
+                await pilot.pause()
+                mock_client.force_complete.assert_called_with("/suite/task")

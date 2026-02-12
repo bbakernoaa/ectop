@@ -41,10 +41,18 @@ class EcflowClient:
             The hostname of the ecFlow server, by default "localhost".
         port : int, optional
             The port number of the ecFlow server, by default 3141.
+
+        Raises
+        ------
+        RuntimeError
+            If the ecFlow client cannot be initialized.
         """
         self.host: str = host
         self.port: int = port
-        self.client: ecflow.Client = ecflow.Client(host, port)
+        try:
+            self.client: ecflow.Client = ecflow.Client(host, port)
+        except RuntimeError as e:
+            raise RuntimeError(f"Failed to initialize ecFlow client for {host}:{port}: {e}") from e
 
     def ping(self) -> None:
         """

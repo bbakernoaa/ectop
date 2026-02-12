@@ -46,6 +46,10 @@ class WhyInspector(ModalScreen[None]):
             The absolute path to the ecFlow node.
         client : EcflowClient
             The ecFlow client instance.
+
+        Returns
+        -------
+        None
         """
         super().__init__()
         self.node_path: str = node_path
@@ -67,11 +71,23 @@ class WhyInspector(ModalScreen[None]):
                 yield Button("Close", variant="primary", id="close_btn")
 
     def on_mount(self) -> None:
-        """Handle the mount event to initialize the dependency tree."""
+        """
+        Handle the mount event to initialize the dependency tree.
+
+        Returns
+        -------
+        None
+        """
         self.refresh_deps()
 
     def action_close(self) -> None:
-        """Close the modal."""
+        """
+        Close the modal.
+
+        Returns
+        -------
+        None
+        """
         self.app.pop_screen()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -82,6 +98,10 @@ class WhyInspector(ModalScreen[None]):
         ----------
         event : Button.Pressed
             The button press event.
+
+        Returns
+        -------
+        None
         """
         if event.button.id == "close_btn":
             self.app.pop_screen()
@@ -94,6 +114,10 @@ class WhyInspector(ModalScreen[None]):
         ----------
         event : Tree.NodeSelected[str]
             The tree node selection event.
+
+        Returns
+        -------
+        None
         """
         node_path = event.node.data
         if node_path:
@@ -107,10 +131,45 @@ class WhyInspector(ModalScreen[None]):
             except Exception as e:
                 self.app.notify(f"Failed to jump: {e}", severity="error")
 
-    @work(thread=True)
     def refresh_deps(self) -> None:
         """
         Fetch dependencies from the server and rebuild the tree.
+
+        Returns
+        -------
+        None
+        """
+        tree = self.query_one("#dep_tree", Tree)
+        self._refresh_deps_worker(tree)
+
+    @work(thread=True)
+    def _refresh_deps_worker(self, tree: Tree) -> None:
+        """
+        Worker to fetch dependencies from the server and rebuild the tree in a background thread.
+
+        Parameters
+        ----------
+        tree : Tree
+            The tree widget to refresh.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This is a background worker that performs blocking I/O.
+        """
+        self._refresh_deps_logic(tree)
+
+    def _refresh_deps_logic(self, tree: Tree) -> None:
+        """
+        The actual logic for fetching dependencies and updating the UI tree.
+
+        Parameters
+        ----------
+        tree : Tree
+            The tree widget to refresh.
 
         Returns
         -------
@@ -123,9 +182,8 @@ class WhyInspector(ModalScreen[None]):
 
         Notes
         -----
-        This method runs in a background thread and updates the UI via `call_from_thread`.
+        This method can be called directly for testing.
         """
-        tree = self.query_one("#dep_tree", Tree)
         self.call_from_thread(tree.clear)
 
         try:
@@ -157,6 +215,10 @@ class WhyInspector(ModalScreen[None]):
             The tree widget.
         label : str
             The new label for the root.
+
+        Returns
+        -------
+        None
         """
         tree.root.label = label
 
@@ -172,6 +234,10 @@ class WhyInspector(ModalScreen[None]):
             The ecFlow node.
         defs : Defs
             The ecFlow definitions.
+
+        Returns
+        -------
+        None
         """
         # Server's "Why" explanation
         try:
@@ -213,6 +279,10 @@ class WhyInspector(ModalScreen[None]):
             The parent node in the Textual tree.
         node : Node
             The ecFlow node to inspect.
+
+        Returns
+        -------
+        None
         """
         inlimits = list(node.inlimits)
         if inlimits:
@@ -232,6 +302,10 @@ class WhyInspector(ModalScreen[None]):
             The expression string to parse.
         defs : Defs
             The ecFlow definitions for node lookups.
+
+        Returns
+        -------
+        None
         """
         if " or " in expr_str:
             parts = expr_str.split(" or ")
@@ -274,6 +348,10 @@ class WhyInspector(ModalScreen[None]):
             The parent node in the Textual tree.
         node : Node
             The ecFlow node to inspect.
+
+        Returns
+        -------
+        None
         """
         for t in node.get_times():
             parent_ui_node.add(f"⏳ Time: {t}")
