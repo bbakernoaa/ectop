@@ -9,7 +9,6 @@ Tests for Modal widgets (VariableTweaker, WhyInspector).
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from ectop.widgets.modals.variables import VariableTweaker
 from ectop.widgets.modals.why import WhyInspector
 

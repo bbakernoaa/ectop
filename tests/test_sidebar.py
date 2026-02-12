@@ -9,9 +9,8 @@ Tests for the Sidebar (SuiteTree) widget.
 from unittest.mock import MagicMock, patch
 
 import pytest
-from rich.text import Text
-
 from ectop.widgets.sidebar import SuiteTree
+from rich.text import Text
 
 
 @pytest.fixture
