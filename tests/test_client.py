@@ -19,6 +19,12 @@ def test_client_init():
         assert client.port == 1234
 
 
+def test_client_init_failure():
+    with patch("ectop.client.ecflow.Client", side_effect=RuntimeError("Init failed")):
+        with pytest.raises(RuntimeError, match="Failed to initialize ecFlow client"):
+            EcflowClient("badhost", 1234)
+
+
 def test_client_ping_success():
     with patch("ectop.client.ecflow.Client") as mock_client:
         client = EcflowClient()

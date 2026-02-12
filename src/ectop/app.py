@@ -266,30 +266,69 @@ class Ectop(App):
         yield Footer()
 
     def on_mount(self) -> None:
-        """Handle the mount event to start the application."""
+        """
+        Handle the mount event to start the application.
+
+        Returns
+        -------
+        None
+        """
         self._initial_connect()
         self.set_interval(self.refresh_interval, self._live_log_tick)
 
     @work(thread=True)
     def _initial_connect(self) -> None:
-        """Perform initial connection to the ecFlow server."""
+        """
+        Perform initial connection to the ecFlow server.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This is a background worker that performs blocking I/O.
+        """
         try:
             self.ecflow_client = EcflowClient(self.host, self.port)
             self.ecflow_client.ping()
             # Initial refresh
             self.action_refresh()
-        except Exception as e:
+        except RuntimeError as e:
             self.call_from_thread(self.notify, f"Connection Failed: {e}", severity="error", timeout=10)
             tree = self.query_one("#suite_tree", SuiteTree)
             self.call_from_thread(self._update_tree_error, tree)
+        except Exception as e:
+            self.call_from_thread(self.notify, f"Unexpected Error: {e}", severity="error")
 
     def _update_tree_error(self, tree: SuiteTree) -> None:
-        """Update tree root to show error."""
+        """
+        Update tree root to show error.
+
+        Parameters
+        ----------
+        tree : SuiteTree
+            The suite tree widget.
+
+        Returns
+        -------
+        None
+        """
         tree.root.label = "[red]Connection Failed (Check Host/Port)[/]"
 
     @work(exclusive=True, thread=True)
     def action_refresh(self) -> None:
-        """Fetch suites from server and rebuild the tree."""
+        """
+        Fetch suites from server and rebuild the tree.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This is a background worker that performs blocking I/O.
+        """
         if not self.ecflow_client:
             return
 
@@ -301,9 +340,11 @@ class Ectop(App):
             self.call_from_thread(tree.update_tree, self.ecflow_client.host, self.ecflow_client.port, defs)
             self.call_from_thread(status_bar.update_status, self.ecflow_client.host, self.ecflow_client.port)
             self.call_from_thread(self.notify, "Tree Refreshed")
-        except Exception as e:
-            self.call_from_thread(status_bar.update_status, self.ecflow_client.host, self.ecflow_client.port, status=f"Error: {e}")
+        except RuntimeError as e:
+            self.call_from_thread(status_bar.update_status, self.ecflow_client.host, self.ecflow_client.port, status="Sync Error")
             self.call_from_thread(self.notify, f"Refresh Error: {e}", severity="error")
+        except Exception as e:
+            self.call_from_thread(self.notify, f"Unexpected Error: {e}", severity="error")
 
     def get_selected_path(self) -> str | None:
         """
@@ -335,21 +376,21 @@ class Ectop(App):
         try:
             content = self.ecflow_client.file(path, "jobout")
             self.call_from_thread(content_area.update_log, content)
-        except Exception:
+        except RuntimeError:
             self.call_from_thread(content_area.show_error, "#log_output", "File type 'jobout' not found.")
 
         # 2. Script
         try:
             content = self.ecflow_client.file(path, "script")
             self.call_from_thread(content_area.update_script, content)
-        except Exception:
+        except RuntimeError:
             self.call_from_thread(content_area.show_error, "#view_script", "File type 'script' not available.")
 
         # 3. Job
         try:
             content = self.ecflow_client.file(path, "job")
             self.call_from_thread(content_area.update_job, content)
-        except Exception:
+        except RuntimeError:
             self.call_from_thread(content_area.show_error, "#view_job", "File type 'job' not available.")
 
     @work(thread=True)
@@ -363,6 +404,14 @@ class Ectop(App):
             The name of the command to run on the EcflowClient.
         path : str | None
             The absolute path to the node.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This is a background worker that performs blocking I/O.
         """
         if not path or not self.ecflow_client:
             return
@@ -371,27 +420,59 @@ class Ectop(App):
             method(path)
             self.call_from_thread(self.notify, f"{command_name.replace('_', ' ').capitalize()}: {path}")
             self.action_refresh()
+        except RuntimeError as e:
+            self.call_from_thread(self.notify, f"Command Error: {e}", severity="error")
         except Exception as e:
-            self.call_from_thread(self.notify, f"Error: {e}", severity="error")
+            self.call_from_thread(self.notify, f"Unexpected Error: {e}", severity="error")
 
     def action_suspend(self) -> None:
-        """Suspend the selected node."""
+        """
+        Suspend the selected node.
+
+        Returns
+        -------
+        None
+        """
         self._run_client_command("suspend", self.get_selected_path())
 
     def action_resume(self) -> None:
-        """Resume the selected node."""
+        """
+        Resume the selected node.
+
+        Returns
+        -------
+        None
+        """
         self._run_client_command("resume", self.get_selected_path())
 
     def action_kill(self) -> None:
-        """Kill the selected node."""
+        """
+        Kill the selected node.
+
+        Returns
+        -------
+        None
+        """
         self._run_client_command("kill", self.get_selected_path())
 
     def action_force(self) -> None:
-        """Force complete the selected node."""
+        """
+        Force complete the selected node.
+
+        Returns
+        -------
+        None
+        """
         self._run_client_command("force_complete", self.get_selected_path())
 
     def action_toggle_live(self) -> None:
-        """Toggle live log updates."""
+        """
+        Toggle live log updates.
+
+        Returns
+        -------
+        None
+        """
         content_area = self.query_one("#main_content", MainContent)
         content_area.is_live = not content_area.is_live
         state = "ON" if content_area.is_live else "OFF"
@@ -415,7 +496,13 @@ class Ectop(App):
                     pass
 
     def action_why(self) -> None:
-        """Show the 'Why' inspector for the selected node."""
+        """
+        Show the 'Why' inspector for the selected node.
+
+        Returns
+        -------
+        None
+        """
         path = self.get_selected_path()
         if not path or not self.ecflow_client:
             self.notify("No node selected", severity="warning")
@@ -423,7 +510,13 @@ class Ectop(App):
         self.push_screen(WhyInspector(path, self.ecflow_client))
 
     def action_variables(self) -> None:
-        """Show the variable tweaker for the selected node."""
+        """
+        Show the variable tweaker for the selected node.
+
+        Returns
+        -------
+        None
+        """
         path = self.get_selected_path()
         if not path or not self.ecflow_client:
             self.notify("No node selected", severity="warning")
@@ -446,8 +539,10 @@ class Ectop(App):
 
             self.call_from_thread(self._run_editor, temp_path, path, content)
 
-        except Exception as e:
+        except RuntimeError as e:
             self.call_from_thread(self.notify, f"Edit Error: {e}", severity="error")
+        except Exception as e:
+            self.call_from_thread(self.notify, f"Unexpected Error: {e}", severity="error")
 
     def _run_editor(self, temp_path: str, path: str, old_content: str) -> None:
         """
@@ -496,8 +591,10 @@ class Ectop(App):
                     self.call_from_thread(self._prompt_requeue, path)
             else:
                 self.call_from_thread(self.notify, "No changes detected")
-        except Exception as e:
+        except RuntimeError as e:
             self.call_from_thread(self.notify, f"Update Error: {e}", severity="error")
+        except Exception as e:
+            self.call_from_thread(self.notify, f"Unexpected Error: {e}", severity="error")
 
     def _prompt_requeue(self, path: str) -> None:
         """
@@ -519,7 +616,13 @@ class Ectop(App):
         self.push_screen(ConfirmModal(f"Re-queue {path} now?", do_requeue))
 
     def action_search(self) -> None:
-        """Show the search box."""
+        """
+        Show the search box.
+
+        Returns
+        -------
+        None
+        """
         search_box = self.query_one("#search_box", SearchBox)
         search_box.add_class("visible")
         search_box.focus()

@@ -100,3 +100,48 @@ def test_why_inspector_expression_parsing(mock_client: MagicMock) -> None:
     parent_node.reset_mock()
     inspector._parse_expression(parent_node, "(/suite/a == active) or (/suite/b == active)", defs)
     parent_node.add.assert_any_call("OR (Any must be true)", expand=True)
+
+
+def test_variable_tweaker_workers(mock_client: MagicMock) -> None:
+    """
+    Test that VariableTweaker workers correctly call the client.
+
+    Parameters
+    ----------
+    mock_client : MagicMock
+        The mock EcflowClient.
+    """
+    tweaker = VariableTweaker("/node", mock_client)
+    tweaker.call_from_thread = lambda f, *args, **kwargs: f(*args, **kwargs)
+    with patch.object(VariableTweaker, "app", new=MagicMock()):
+        # Test delete worker
+        tweaker._delete_variable_worker("VAR1")
+        mock_client.alter.assert_called_with("/node", "delete_variable", "VAR1")
+
+        # Test submit worker (add)
+        tweaker._submit_variable_worker("NEWVAR=NEWVAL")
+        mock_client.alter.assert_called_with("/node", "add_variable", "NEWVAR", "NEWVAL")
+
+        # Test submit worker (update)
+        tweaker.selected_var_name = "EXISTING"
+        tweaker._submit_variable_worker("UPDATED")
+        mock_client.alter.assert_called_with("/node", "add_variable", "EXISTING", "UPDATED")
+
+
+def test_why_inspector_worker(mock_client: MagicMock) -> None:
+    """
+    Test that WhyInspector worker correctly synchronizes with the server.
+
+    Parameters
+    ----------
+    mock_client : MagicMock
+        The mock EcflowClient.
+    """
+    inspector = WhyInspector("/node", mock_client)
+    inspector.call_from_thread = lambda f, *args, **kwargs: f(*args, **kwargs)
+    tree = MagicMock()
+
+    with patch.object(WhyInspector, "_populate_dep_tree"):
+        inspector._refresh_deps_worker(tree)
+        mock_client.sync_local.assert_called_once()
+        mock_client.get_defs.assert_called_once()

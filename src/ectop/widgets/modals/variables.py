@@ -64,7 +64,13 @@ class VariableTweaker(ModalScreen[None]):
                 yield Button("Close", variant="primary", id="close_btn")
 
     def on_mount(self) -> None:
-        """Handle the mount event to initialize the table."""
+        """
+        Handle the mount event to initialize the table.
+
+        Returns
+        -------
+        None
+        """
         table = self.query_one("#var_table", DataTable)
         table.add_columns("Name", "Value", "Type")
         table.cursor_type = "row"
@@ -72,7 +78,13 @@ class VariableTweaker(ModalScreen[None]):
         self.query_one("#var_input").add_class("hidden")
 
     def action_close(self) -> None:
-        """Close the modal."""
+        """
+        Close the modal.
+
+        Returns
+        -------
+        None
+        """
         self.app.pop_screen()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -177,7 +189,6 @@ class VariableTweaker(ModalScreen[None]):
         input_field.remove_class("hidden")
         input_field.focus()
 
-    @work(thread=True)
     def on_input_submitted(self, event: Input.Submitted) -> None:
         """
         Handle variable submission (add or update).
@@ -188,65 +199,126 @@ class VariableTweaker(ModalScreen[None]):
             The input submission event.
         """
         if event.input.id == "var_input":
-            value = event.value
-            try:
-                if self.selected_var_name:
-                    # Editing existing
-                    self.client.alter(self.node_path, "add_variable", self.selected_var_name, value)
-                    self.call_from_thread(self.app.notify, f"Updated {self.selected_var_name}")
-                else:
-                    # Adding new (expecting name=value)
-                    if "=" in value:
-                        name, val = value.split("=", 1)
-                        self.client.alter(self.node_path, "add_variable", name.strip(), val.strip())
-                        self.call_from_thread(self.app.notify, f"Added {name.strip()}")
-                    else:
-                        self.call_from_thread(self.app.notify, "Use name=value format to add", severity="warning")
-                        return
+            self._submit_variable_worker(event.value)
 
-                self.call_from_thread(self._reset_input, event.input)
-                self.refresh_vars()
-            except Exception as e:
-                self.call_from_thread(self.app.notify, f"Error: {e}", severity="error")
-
-    def _reset_input(self, input_field: Input) -> None:
+    @work(thread=True)
+    def _submit_variable_worker(self, value: str) -> None:
         """
-        Reset the input field state.
+        Worker to submit a new or updated variable.
 
         Parameters
         ----------
-        input_field : Input
-            The input field to reset.
+        value : str
+            The new value or 'name=value' string.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        RuntimeError
+            If the server alteration fails.
+
+        Notes
+        -----
+        This is a background worker that performs blocking I/O.
         """
+        try:
+            if self.selected_var_name:
+                # Editing existing
+                self.client.alter(self.node_path, "add_variable", self.selected_var_name, value)
+                self.call_from_thread(self.app.notify, f"Updated {self.selected_var_name}")
+            else:
+                # Adding new (expecting name=value)
+                if "=" in value:
+                    name, val = value.split("=", 1)
+                    self.client.alter(self.node_path, "add_variable", name.strip(), val.strip())
+                    self.call_from_thread(self.app.notify, f"Added {name.strip()}")
+                else:
+                    self.call_from_thread(self.app.notify, "Use name=value format to add", severity="warning")
+                    return
+
+            self.call_from_thread(self._reset_input)
+            self.refresh_vars()
+        except Exception as e:
+            self.call_from_thread(self.app.notify, f"Error: {e}", severity="error")
+
+    def _reset_input(self) -> None:
+        """
+        Reset the input field state.
+
+        Returns
+        -------
+        None
+        """
+        input_field = self.query_one("#var_input", Input)
         input_field.add_class("hidden")
         input_field.value = ""
         input_field.placeholder = "Enter new value..."
         self.query_one("#var_table").focus()
 
     def action_add_variable(self) -> None:
-        """Show the input field to add a new variable."""
+        """
+        Show the input field to add a new variable.
+
+        Returns
+        -------
+        None
+        """
         input_field = self.query_one("#var_input", Input)
         input_field.placeholder = "Enter name=value to add"
         input_field.remove_class("hidden")
         input_field.focus()
         self.selected_var_name = None
 
-    @work(thread=True)
     def action_delete_variable(self) -> None:
-        """Delete the selected variable from the server."""
+        """
+        Delete the selected variable from the server.
+
+        Returns
+        -------
+        None
+        """
         table = self.query_one("#var_table", DataTable)
         row_index = table.cursor_row
         if row_index is not None:
             # Get row key from the index
             row_keys = list(table.rows.keys())
             row_key = row_keys[row_index].value
-            if row_key and row_key.startswith("inh_"):
-                self.call_from_thread(self.app.notify, "Cannot delete inherited variables", severity="error")
-                return
-            try:
-                if row_key:
-                    self.client.alter(self.node_path, "delete_variable", row_key)
-                    self.call_from_thread(self.app.notify, f"Deleted {row_key}")
-                    self.refresh_vars()
-            except Exception as e:
-                self.call_from_thread(self.app.notify, f"Error: {e}", severity="error")
+            if row_key:
+                self._delete_variable_worker(row_key)
+
+    @work(thread=True)
+    def _delete_variable_worker(self, row_key: str) -> None:
+        """
+        Worker to delete a variable from the server.
+
+        Parameters
+        ----------
+        row_key : str
+            The name (or key) of the variable to delete.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        RuntimeError
+            If the server alteration fails.
+
+        Notes
+        -----
+        This is a background worker that performs blocking I/O.
+        """
+        if row_key.startswith("inh_"):
+            self.call_from_thread(self.app.notify, "Cannot delete inherited variables", severity="error")
+            return
+
+        try:
+            self.client.alter(self.node_path, "delete_variable", row_key)
+            self.call_from_thread(self.app.notify, f"Deleted {row_key}")
+            self.refresh_vars()
+        except Exception as e:
+            self.call_from_thread(self.app.notify, f"Error: {e}", severity="error")

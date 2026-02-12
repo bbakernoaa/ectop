@@ -67,11 +67,23 @@ class WhyInspector(ModalScreen[None]):
                 yield Button("Close", variant="primary", id="close_btn")
 
     def on_mount(self) -> None:
-        """Handle the mount event to initialize the dependency tree."""
+        """
+        Handle the mount event to initialize the dependency tree.
+
+        Returns
+        -------
+        None
+        """
         self.refresh_deps()
 
     def action_close(self) -> None:
-        """Close the modal."""
+        """
+        Close the modal.
+
+        Returns
+        -------
+        None
+        """
         self.app.pop_screen()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -107,10 +119,26 @@ class WhyInspector(ModalScreen[None]):
             except Exception as e:
                 self.app.notify(f"Failed to jump: {e}", severity="error")
 
-    @work(thread=True)
     def refresh_deps(self) -> None:
         """
         Fetch dependencies from the server and rebuild the tree.
+
+        Returns
+        -------
+        None
+        """
+        tree = self.query_one("#dep_tree", Tree)
+        self._refresh_deps_worker(tree)
+
+    @work(thread=True)
+    def _refresh_deps_worker(self, tree: Tree) -> None:
+        """
+        Worker to fetch dependencies from the server and rebuild the tree.
+
+        Parameters
+        ----------
+        tree : Tree
+            The tree widget to refresh.
 
         Returns
         -------
@@ -125,7 +153,6 @@ class WhyInspector(ModalScreen[None]):
         -----
         This method runs in a background thread and updates the UI via `call_from_thread`.
         """
-        tree = self.query_one("#dep_tree", Tree)
         self.call_from_thread(tree.clear)
 
         try:

@@ -64,6 +64,7 @@ class SuiteTree(Tree[str]):
         This method is typically called from the main thread after a sync.
         """
         self.defs = defs
+        self._all_paths_cache: list[str] | None = None
         self.clear()
         if not defs:
             self.root.label = "Server Empty"
@@ -105,8 +106,18 @@ class SuiteTree(Tree[str]):
         )
 
         # If it's a container and has children, add a placeholder for lazy loading
-        if is_container and hasattr(ecflow_node, "nodes") and len(list(ecflow_node.nodes)) > 0:
-            new_ui_node.add("loading...", allow_expand=False)
+        if is_container and hasattr(ecflow_node, "nodes"):
+            # Use a more efficient check for presence of children than len(list(...))
+            has_children = False
+            try:
+                # Check if there is at least one child
+                next(iter(ecflow_node.nodes))
+                has_children = True
+            except (StopIteration, RuntimeError):
+                pass
+
+            if has_children:
+                new_ui_node.add("loading...", allow_expand=False)
 
         return new_ui_node
 
@@ -118,6 +129,10 @@ class SuiteTree(Tree[str]):
         ----------
         event : Tree.NodeExpanded[str]
             The expansion event.
+
+        Returns
+        -------
+        None
         """
         node = event.node
         self._load_children(node)
@@ -203,17 +218,25 @@ class SuiteTree(Tree[str]):
             return False
 
         query = query.lower()
-        all_paths: list[str] = []
-        for suite in self.defs.suites:
-            all_paths.append(suite.abs_node_path())
-            for node in suite.get_all_nodes():
-                all_paths.append(node.abs_node_path())
+
+        # Build or use cached paths
+        if not hasattr(self, "_all_paths_cache") or self._all_paths_cache is None:
+            self._all_paths_cache = []
+            for suite in self.defs.suites:
+                self._all_paths_cache.append(suite.abs_node_path())
+                for node in suite.get_all_nodes():
+                    self._all_paths_cache.append(node.abs_node_path())
+
+        all_paths = self._all_paths_cache
 
         # Start from current cursor if possible
         current_path = self.cursor_node.data if self.cursor_node else None
         start_index = 0
         if current_path and current_path in all_paths:
-            start_index = all_paths.index(current_path) + 1
+            try:
+                start_index = all_paths.index(current_path) + 1
+            except ValueError:
+                start_index = 0
 
         # Search from start_index to end, then wrap around
         for i in range(len(all_paths)):
@@ -231,6 +254,10 @@ class SuiteTree(Tree[str]):
         ----------
         path : str
             The absolute path of the node to select.
+
+        Returns
+        -------
+        None
         """
         if path == "/":
             self.select_node(self.root)
@@ -265,6 +292,10 @@ class SuiteTree(Tree[str]):
         ----------
         node : TreeNode[str]
             The node to select and reveal.
+
+        Returns
+        -------
+        None
         """
         self.select_node(node)
         parent = node.parent
