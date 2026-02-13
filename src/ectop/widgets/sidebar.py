@@ -1,4 +1,7 @@
-# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+# #############################################################################
+# WARNING: If you modify features, API, or usage, you MUST update the
+# documentation immediately.
+# #############################################################################
 """
 Sidebar widget for the ecFlow suite tree.
 
@@ -14,7 +17,13 @@ from textual import work
 from textual.widgets import Tree
 from textual.widgets.tree import TreeNode
 
-from ectop.constants import STATE_MAP
+from ectop.constants import (
+    ICON_FAMILY,
+    ICON_SERVER,
+    ICON_TASK,
+    LOADING_PLACEHOLDER,
+    STATE_MAP,
+)
 
 if TYPE_CHECKING:
     from ecflow import Defs, Node
@@ -74,7 +83,7 @@ class SuiteTree(Tree[str]):
             self.root.label = "Server Empty"
             return
 
-        self.root.label = f"🌍 {client_host}:{client_port}"
+        self.root.label = f"{ICON_SERVER} {client_host}:{client_port}"
         for suite in defs.suites:
             self._add_node_to_ui(self.root, suite)
 
@@ -98,7 +107,7 @@ class SuiteTree(Tree[str]):
         icon = STATE_MAP.get(state, "⚪")
 
         is_container = isinstance(ecflow_node, ecflow.Family | ecflow.Suite)
-        type_icon = "📂" if is_container else "⚙️"
+        type_icon = ICON_FAMILY if is_container else ICON_TASK
 
         label = Text(f"{icon} {type_icon} {ecflow_node.name()} ")
         label.append(f"[{state}]", style="bold italic")
@@ -121,7 +130,7 @@ class SuiteTree(Tree[str]):
                 pass
 
             if has_children:
-                new_ui_node.add("loading...", allow_expand=False)
+                new_ui_node.add(LOADING_PLACEHOLDER, allow_expand=False)
 
         return new_ui_node
 
@@ -168,7 +177,7 @@ class SuiteTree(Tree[str]):
             return
 
         # Check if we have the placeholder
-        if len(ui_node.children) == 1 and str(ui_node.children[0].label) == "loading...":
+        if len(ui_node.children) == 1 and str(ui_node.children[0].label) == LOADING_PLACEHOLDER:
             ui_node.children[0].remove()
             if sync:
                 ecflow_node = self.defs.find_abs_node(ui_node.data)

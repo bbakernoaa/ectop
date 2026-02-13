@@ -7,6 +7,7 @@ This section contains the automatically generated API documentation for `ectop`.
 ::: ectop.app
 ::: ectop.client
 ::: ectop.cli
+::: ectop.constants
 
 ## Widgets
 

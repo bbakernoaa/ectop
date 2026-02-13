@@ -1,4 +1,7 @@
-# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+# #############################################################################
+# WARNING: If you modify features, API, or usage, you MUST update the
+# documentation immediately.
+# #############################################################################
 """
 Main content area for displaying ecFlow node information.
 
@@ -124,6 +127,5 @@ class MainContent(TabbedContent):
         widget = self.query_one(widget_id)
         if isinstance(widget, RichLog):
             widget.write(f"[italic red]{message}[/]")
-        else:
-            # Type ignore because we know Static has update
-            widget.update(f"[italic red]{message}[/]")  # type: ignore
+        elif isinstance(widget, Static):
+            widget.update(f"[italic red]{message}[/]")

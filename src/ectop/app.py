@@ -1,4 +1,7 @@
-# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+# #############################################################################
+# WARNING: If you modify features, API, or usage, you MUST update the
+# documentation immediately.
+# #############################################################################
 """
 Main application class for ectop.
 
@@ -492,7 +495,7 @@ class Ectop(App):
                 try:
                     content = self.ecflow_client.file(path, "jobout")
                     self.call_from_thread(content_area.update_log, content, append=True)
-                except Exception:
+                except RuntimeError:
                     pass
 
     def action_why(self) -> None:
