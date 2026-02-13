@@ -1,4 +1,7 @@
-# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+# #############################################################################
+# WARNING: If you modify features, API, or usage, you MUST update the
+# documentation immediately.
+# #############################################################################
 """
 Modal screen for inspecting why an ecFlow node is not running.
 
@@ -18,6 +21,16 @@ from textual.widgets import Button, Static, Tree
 from textual.widgets.tree import TreeNode
 
 from ectop.client import EcflowClient
+from ectop.constants import (
+    ICON_CRON,
+    ICON_DATE,
+    ICON_MET,
+    ICON_NOT_MET,
+    ICON_NOTE,
+    ICON_REASON,
+    ICON_TIME,
+    ICON_UNKNOWN,
+)
 
 if TYPE_CHECKING:
     from ecflow import Defs, Node
@@ -202,8 +215,10 @@ class WhyInspector(ModalScreen[None]):
             # Populate the tree (UI operations must be on main thread)
             self.call_from_thread(self._populate_dep_tree, tree, node, defs)
 
-        except Exception as e:
+        except RuntimeError as e:
             self.call_from_thread(self._update_tree_root, tree, f"Error: {e}")
+        except Exception as e:
+            self.call_from_thread(self._update_tree_root, tree, f"Unexpected Error: {e}")
 
     def _update_tree_root(self, tree: Tree, label: str) -> None:
         """
@@ -245,7 +260,7 @@ class WhyInspector(ModalScreen[None]):
             # but usually it's available on the node if it was synced.
             why_str = node.get_why()
             if why_str:
-                tree.root.add(f"💡 Reason: [italic]{why_str}[/]", expand=True)
+                tree.root.add(f"{ICON_REASON} Reason: [italic]{why_str}[/]", expand=True)
         except AttributeError:
             pass
 
@@ -331,12 +346,12 @@ class WhyInspector(ModalScreen[None]):
             if target_node:
                 actual_state = str(target_node.get_state())
                 is_met = actual_state == expected_state
-                icon = "✅" if is_met else "❌"
+                icon = ICON_MET if is_met else ICON_NOT_MET
                 parent_ui_node.add(f"{icon} {path} == {actual_state} (Expected: {expected_state})", data=path)
             else:
-                parent_ui_node.add(f"❓ {path} (Not found)")
+                parent_ui_node.add(f"{ICON_UNKNOWN} {path} (Not found)")
         else:
-            parent_ui_node.add(f"📝 {expr_str}")
+            parent_ui_node.add(f"{ICON_NOTE} {expr_str}")
 
     def _add_time_deps(self, parent_ui_node: TreeNode[str], node: "Node") -> None:
         """
@@ -354,8 +369,8 @@ class WhyInspector(ModalScreen[None]):
         None
         """
         for t in node.get_times():
-            parent_ui_node.add(f"⏳ Time: {t}")
+            parent_ui_node.add(f"{ICON_TIME} Time: {t}")
         for d in node.get_dates():
-            parent_ui_node.add(f"📅 Date: {d}")
+            parent_ui_node.add(f"{ICON_DATE} Date: {d}")
         for c in node.get_crons():
-            parent_ui_node.add(f"⏰ Cron: {c}")
+            parent_ui_node.add(f"{ICON_CRON} Cron: {c}")

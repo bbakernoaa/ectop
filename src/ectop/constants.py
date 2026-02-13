@@ -1,4 +1,7 @@
-# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+# #############################################################################
+# WARNING: If you modify features, API, or usage, you MUST update the
+# documentation immediately.
+# #############################################################################
 """
 Constants for the ectop application.
 
@@ -21,3 +24,20 @@ STATE_MAP: dict[str, str] = {
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = 3141
 DEFAULT_REFRESH_INTERVAL = 2.0
+
+# --- UI Icons ---
+ICON_SERVER = "🌍"
+ICON_FAMILY = "📂"
+ICON_TASK = "⚙️"
+ICON_REASON = "💡"
+ICON_MET = "✅"
+ICON_NOT_MET = "❌"
+ICON_UNKNOWN = "❓"
+ICON_NOTE = "📝"
+ICON_TIME = "⏳"
+ICON_DATE = "📅"
+ICON_CRON = "⏰"
+
+# --- Magic Strings ---
+LOADING_PLACEHOLDER = "loading..."
+INHERITED_VAR_PREFIX = "inh_"

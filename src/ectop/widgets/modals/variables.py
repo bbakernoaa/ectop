@@ -1,4 +1,7 @@
-# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+# #############################################################################
+# WARNING: If you modify features, API, or usage, you MUST update the
+# documentation immediately.
+# #############################################################################
 """
 Modal screen for viewing and editing ecFlow variables.
 
@@ -14,6 +17,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, DataTable, Input, Static
 
 from ectop.client import EcflowClient
+from ectop.constants import INHERITED_VAR_PREFIX
 
 
 class VariableTweaker(ModalScreen[None]):
@@ -169,14 +173,18 @@ class VariableTweaker(ModalScreen[None]):
                 for var in parent.variables:
                     # Only add if not already present (overridden)
                     if var.name() not in seen_vars:
-                        rows.append((var.name(), var.value(), f"Inherited ({parent.name()})", f"inh_{var.name()}"))
+                        rows.append(
+                            (var.name(), var.value(), f"Inherited ({parent.name()})", f"{INHERITED_VAR_PREFIX}{var.name()}")
+                        )
                         seen_vars.add(var.name())
                 parent = parent.parent
 
             self.call_from_thread(self._update_table, rows)
 
-        except Exception as e:
+        except RuntimeError as e:
             self.call_from_thread(self.app.notify, f"Error fetching variables: {e}", severity="error")
+        except Exception as e:
+            self.call_from_thread(self.app.notify, f"Unexpected Error: {e}", severity="error")
 
     def _update_table(self, rows: list[tuple[str, str, str, str]]) -> None:
         """
@@ -210,7 +218,7 @@ class VariableTweaker(ModalScreen[None]):
         None
         """
         row_key = event.row_key.value
-        if row_key and row_key.startswith("inh_"):
+        if row_key and row_key.startswith(INHERITED_VAR_PREFIX):
             self.app.notify("Cannot edit inherited variables directly. Add it to this node to override.", severity="warning")
             return
 
@@ -294,8 +302,10 @@ class VariableTweaker(ModalScreen[None]):
 
             self.call_from_thread(self._reset_input)
             self.refresh_vars()
-        except Exception as e:
+        except RuntimeError as e:
             self.call_from_thread(self.app.notify, f"Error: {e}", severity="error")
+        except Exception as e:
+            self.call_from_thread(self.app.notify, f"Unexpected Error: {e}", severity="error")
 
     def _reset_input(self) -> None:
         """
@@ -384,7 +394,7 @@ class VariableTweaker(ModalScreen[None]):
         -----
         This method can be called directly for testing.
         """
-        if row_key.startswith("inh_"):
+        if row_key.startswith(INHERITED_VAR_PREFIX):
             self.call_from_thread(self.app.notify, "Cannot delete inherited variables", severity="error")
             return
 
@@ -392,5 +402,7 @@ class VariableTweaker(ModalScreen[None]):
             self.client.alter(self.node_path, "delete_variable", row_key)
             self.call_from_thread(self.app.notify, f"Deleted {row_key}")
             self.refresh_vars()
-        except Exception as e:
+        except RuntimeError as e:
             self.call_from_thread(self.app.notify, f"Error: {e}", severity="error")
+        except Exception as e:
+            self.call_from_thread(self.app.notify, f"Unexpected Error: {e}", severity="error")
