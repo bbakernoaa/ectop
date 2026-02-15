@@ -24,6 +24,8 @@ from textual.widgets.tree import TreeNode
 
 from ectop.client import EcflowClient
 from ectop.constants import (
+    EXPR_AND_LABEL,
+    EXPR_OR_LABEL,
     ICON_CRON,
     ICON_DATE,
     ICON_MET,
@@ -32,8 +34,6 @@ from ectop.constants import (
     ICON_REASON,
     ICON_TIME,
     ICON_UNKNOWN,
-    EXPR_AND_LABEL,
-    EXPR_OR_LABEL,
 )
 
 if TYPE_CHECKING:

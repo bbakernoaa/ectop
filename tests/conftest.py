@@ -5,6 +5,7 @@
 import sys
 from unittest.mock import MagicMock
 
+
 # Create dummy types for ecflow classes so isinstance() works
 class MockNode:
     def abs_node_path(self) -> str: return ""

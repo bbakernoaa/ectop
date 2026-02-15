@@ -9,10 +9,13 @@ Tests for SuiteTree search optimization.
 from __future__ import annotations
 
 import unittest.mock as mock
-import pytest
+
 import ecflow
+import pytest
 from textual.app import App
+
 from ectop.widgets.sidebar import SuiteTree
+
 
 @pytest.mark.asyncio
 async def test_search_cache_background_building():
@@ -59,7 +62,7 @@ async def test_find_and_select_fallback():
             yield SuiteTree("Test")
 
     app = TestApp()
-    async with app.run_test() as pilot:
+    async with app.run_test():
         tree = app.query_one(SuiteTree)
 
         mock_defs = mock.MagicMock()
