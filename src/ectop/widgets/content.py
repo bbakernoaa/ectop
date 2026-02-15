@@ -9,6 +9,8 @@ Main content area for displaying ecFlow node information.
     If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 from rich.syntax import Syntax

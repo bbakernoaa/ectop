@@ -1,4 +1,7 @@
-# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+# #############################################################################
+# WARNING: If you modify features, API, or usage, you MUST update the
+# documentation immediately.
+# #############################################################################
 """
 Tests for Modal widgets (VariableTweaker, WhyInspector).
 
@@ -6,10 +9,17 @@ Tests for Modal widgets (VariableTweaker, WhyInspector).
     If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 
+from ectop.constants import (
+    EXPR_AND_LABEL,
+    EXPR_OR_LABEL,
+    VAR_TYPE_INHERITED,
+)
 from ectop.widgets.modals.variables import VariableTweaker
 from ectop.widgets.modals.why import WhyInspector
 
@@ -65,7 +75,9 @@ def test_variable_tweaker_inherited_logic(mock_client: MagicMock) -> None:
             tweaker.refresh_vars()
 
             # Should have one row for inherited variable
-            table.add_row.assert_called_once_with("F_VAR", "F_VAL", "Inherited (f1)", key="inh_F_VAR")
+            table.add_row.assert_called_once_with(
+                "F_VAR", "F_VAL", f"{VAR_TYPE_INHERITED} (f1)", key="inh_F_VAR"
+            )
 
 
 def test_why_inspector_expression_parsing(mock_client: MagicMock) -> None:
@@ -94,12 +106,24 @@ def test_why_inspector_expression_parsing(mock_client: MagicMock) -> None:
     inspector._parse_expression(parent_node, "(/suite/a == complete) and (/suite/b == complete)", defs)
 
     # Check that AND node was added
-    parent_node.add.assert_any_call("AND (All must be true)", expand=True)
+    parent_node.add.assert_any_call(EXPR_AND_LABEL, expand=True)
 
     # Test OR expression
     parent_node.reset_mock()
     inspector._parse_expression(parent_node, "(/suite/a == active) or (/suite/b == active)", defs)
-    parent_node.add.assert_any_call("OR (Any must be true)", expand=True)
+    parent_node.add.assert_any_call(EXPR_OR_LABEL, expand=True)
+
+    # Test nested expression
+    parent_node.reset_mock()
+    # Mock the return value of add so we can check recursive calls
+    sub_node = MagicMock()
+    parent_node.add.return_value = sub_node
+
+    inspector._parse_expression(
+        parent_node, "(/suite/a == complete) or ((/suite/b == active) and (/suite/a == complete))", defs
+    )
+    parent_node.add.assert_any_call(EXPR_OR_LABEL, expand=True)
+    sub_node.add.assert_any_call(EXPR_AND_LABEL, expand=True)
 
 
 def test_variable_tweaker_workers(mock_client: MagicMock) -> None:
@@ -113,7 +137,9 @@ def test_variable_tweaker_workers(mock_client: MagicMock) -> None:
     """
     tweaker = VariableTweaker("/node", mock_client)
     tweaker.call_from_thread = MagicMock(side_effect=lambda f, *args, **kwargs: f(*args, **kwargs))
-    with patch.object(VariableTweaker, "app", new=PropertyMock(return_value=MagicMock())), patch.object(tweaker, "refresh_vars"):
+    with patch.object(VariableTweaker, "app", new=PropertyMock(return_value=MagicMock())), patch.object(
+        tweaker, "refresh_vars"
+    ):
         # Call the logic methods directly for testing
         tweaker._delete_variable_logic("VAR1")
         mock_client.alter.assert_any_call("/node", "delete_variable", "VAR1")

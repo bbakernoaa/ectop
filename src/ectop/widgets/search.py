@@ -1,10 +1,15 @@
-# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+# #############################################################################
+# WARNING: If you modify features, API, or usage, you MUST update the
+# documentation immediately.
+# #############################################################################
 """
 Search box widget for finding nodes in the suite tree.
 
 .. note::
     If you modify features, API, or usage, you MUST update the documentation immediately.
 """
+
+from __future__ import annotations
 
 from typing import Any
 
