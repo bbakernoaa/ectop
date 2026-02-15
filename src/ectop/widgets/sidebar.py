@@ -23,6 +23,7 @@ from ectop.constants import (
     ICON_FAMILY,
     ICON_SERVER,
     ICON_TASK,
+    ICON_UNKNOWN_STATE,
     LOADING_PLACEHOLDER,
     STATE_MAP,
 )
@@ -89,6 +90,34 @@ class SuiteTree(Tree[str]):
         for suite in defs.suites:
             self._add_node_to_ui(self.root, suite)
 
+        # Trigger background cache building for search
+        self._build_all_paths_cache_worker()
+
+    @work(thread=True)
+    def _build_all_paths_cache_worker(self) -> None:
+        """
+        Worker to build the node path cache in a background thread.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This cache is used by find_and_select to provide fast search without
+        blocking the UI thread on the first search.
+        """
+        if not self.defs:
+            return
+
+        paths: list[str] = []
+        for suite in self.defs.suites:
+            paths.append(suite.abs_node_path())
+            for node in suite.get_all_nodes():
+                paths.append(node.abs_node_path())
+
+        self._all_paths_cache = paths
+
     def _add_node_to_ui(self, parent_ui_node: TreeNode[str], ecflow_node: Node) -> TreeNode[str]:
         """
         Add a single ecflow node to the UI tree.
@@ -106,7 +135,7 @@ class SuiteTree(Tree[str]):
             The newly created UI node.
         """
         state = str(ecflow_node.get_state())
-        icon = STATE_MAP.get(state, "⚪")
+        icon = STATE_MAP.get(state, ICON_UNKNOWN_STATE)
 
         is_container = isinstance(ecflow_node, (ecflow.Family, ecflow.Suite))
         type_icon = ICON_FAMILY if is_container else ICON_TASK
@@ -240,11 +269,13 @@ class SuiteTree(Tree[str]):
 
         # Build or use cached paths
         if not hasattr(self, "_all_paths_cache") or self._all_paths_cache is None:
-            self._all_paths_cache = []
+            # Fallback if cache isn't ready yet (e.g. searching immediately after sync)
+            paths: list[str] = []
             for suite in self.defs.suites:
-                self._all_paths_cache.append(suite.abs_node_path())
+                paths.append(suite.abs_node_path())
                 for node in suite.get_all_nodes():
-                    self._all_paths_cache.append(node.abs_node_path())
+                    paths.append(node.abs_node_path())
+            self._all_paths_cache = paths
 
         all_paths = self._all_paths_cache
 

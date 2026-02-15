@@ -1,10 +1,15 @@
-# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+# #############################################################################
+# WARNING: If you modify features, API, or usage, you MUST update the
+# documentation immediately.
+# #############################################################################
 """
 CLI entry point for ectop.
 
 .. note::
     If you modify features, API, or usage, you MUST update the documentation immediately.
 """
+
+from __future__ import annotations
 
 import argparse
 import os

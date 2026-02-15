@@ -1,11 +1,7 @@
 # .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
-import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-# Mock ecflow before importing the app
-sys.modules["ecflow"] = MagicMock()
 
 from ectop import Ectop  # noqa: E402
 

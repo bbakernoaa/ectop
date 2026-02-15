@@ -9,6 +9,8 @@ Constants for the ectop application.
     If you modify features, API, or usage, you MUST update the documentation immediately.
 """
 
+from __future__ import annotations
+
 # --- State Icons ---
 STATE_MAP: dict[str, str] = {
     "unknown": "⚪",
@@ -37,6 +39,16 @@ ICON_NOTE = "📝"
 ICON_TIME = "⏳"
 ICON_DATE = "📅"
 ICON_CRON = "⏰"
+ICON_UNKNOWN_STATE = "⚪"
+
+# --- Variable Types ---
+VAR_TYPE_USER = "User"
+VAR_TYPE_GENERATED = "Generated"
+VAR_TYPE_INHERITED = "Inherited"
+
+# --- Expression Labels ---
+EXPR_OR_LABEL = "OR (Any must be true)"
+EXPR_AND_LABEL = "AND (All must be true)"
 
 # --- Magic Strings ---
 LOADING_PLACEHOLDER = "loading..."

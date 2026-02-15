@@ -24,6 +24,8 @@ from textual.widgets.tree import TreeNode
 
 from ectop.client import EcflowClient
 from ectop.constants import (
+    EXPR_AND_LABEL,
+    EXPR_OR_LABEL,
     ICON_CRON,
     ICON_DATE,
     ICON_MET,
@@ -326,14 +328,14 @@ class WhyInspector(ModalScreen[None]):
         """
         if " or " in expr_str:
             parts = expr_str.split(" or ")
-            or_node = parent_ui_node.add("OR (Any must be true)", expand=True)
+            or_node = parent_ui_node.add(EXPR_OR_LABEL, expand=True)
             for part in parts:
                 self._parse_expression(or_node, part.strip().strip("()"), defs)
             return
 
         if " and " in expr_str:
             parts = expr_str.split(" and ")
-            and_node = parent_ui_node.add("AND (All must be true)", expand=True)
+            and_node = parent_ui_node.add(EXPR_AND_LABEL, expand=True)
             for part in parts:
                 self._parse_expression(and_node, part.strip().strip("()"), defs)
             return

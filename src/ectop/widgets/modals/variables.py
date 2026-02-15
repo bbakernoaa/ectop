@@ -19,7 +19,12 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, DataTable, Input, Static
 
 from ectop.client import EcflowClient
-from ectop.constants import INHERITED_VAR_PREFIX
+from ectop.constants import (
+    INHERITED_VAR_PREFIX,
+    VAR_TYPE_GENERATED,
+    VAR_TYPE_INHERITED,
+    VAR_TYPE_USER,
+)
 
 
 class VariableTweaker(ModalScreen[None]):
@@ -161,12 +166,12 @@ class VariableTweaker(ModalScreen[None]):
 
             # User variables
             for var in node.variables:
-                rows.append((var.name(), var.value(), "User", var.name()))
+                rows.append((var.name(), var.value(), VAR_TYPE_USER, var.name()))
                 seen_vars.add(var.name())
 
             # Generated variables
             for var in node.generated_variables:
-                rows.append((var.name(), var.value(), "Generated", var.name()))
+                rows.append((var.name(), var.value(), VAR_TYPE_GENERATED, var.name()))
                 seen_vars.add(var.name())
 
             # Inherited variables (climb up the tree)
@@ -176,7 +181,12 @@ class VariableTweaker(ModalScreen[None]):
                     # Only add if not already present (overridden)
                     if var.name() not in seen_vars:
                         rows.append(
-                            (var.name(), var.value(), f"Inherited ({parent.name()})", f"{INHERITED_VAR_PREFIX}{var.name()}")
+                            (
+                                var.name(),
+                                var.value(),
+                                f"{VAR_TYPE_INHERITED} ({parent.name()})",
+                                f"{INHERITED_VAR_PREFIX}{var.name()}",
+                            )
                         )
                         seen_vars.add(var.name())
                 parent = parent.parent
