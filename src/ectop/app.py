@@ -24,7 +24,19 @@ from textual.containers import Container, Horizontal
 from textual.widgets import Footer, Header, Input
 
 from ectop.client import EcflowClient
-from ectop.constants import DEFAULT_HOST, DEFAULT_PORT, DEFAULT_REFRESH_INTERVAL
+from ectop.constants import (
+    COLOR_BG,
+    COLOR_BORDER,
+    COLOR_CONTENT_BG,
+    COLOR_HEADER_BG,
+    COLOR_SIDEBAR_BG,
+    COLOR_STATUS_BAR_BG,
+    COLOR_TEXT,
+    COLOR_TEXT_HIGHLIGHT,
+    DEFAULT_HOST,
+    DEFAULT_PORT,
+    DEFAULT_REFRESH_INTERVAL,
+)
 from ectop.widgets.content import MainContent
 from ectop.widgets.modals.variables import VariableTweaker
 from ectop.widgets.modals.why import WhyInspector
@@ -63,6 +75,9 @@ class EctopCommands(Provider):
             ("Resume Node", app.action_resume, "Resume the currently selected node"),
             ("Kill Node", app.action_kill, "Kill the currently selected node"),
             ("Force Complete", app.action_force, "Force complete the currently selected node"),
+            ("Cycle Filter", app.action_cycle_filter, "Cycle status filters (All, Aborted, Active...)"),
+            ("Requeue", app.action_requeue, "Requeue the currently selected node"),
+            ("Copy Path", app.action_copy_path, "Copy the selected node path"),
             ("Why?", app.action_why, "Inspect why a node is not running"),
             ("Variables", app.action_variables, "View/Edit node variables"),
             ("Edit Script", app.action_edit_script, "Edit and rerun node script"),
@@ -89,122 +104,122 @@ class Ectop(App):
         If you modify features, API, or usage, you MUST update the documentation immediately.
     """
 
-    CSS = """
-    Screen {
-        background: #1a1b26;
-    }
+    CSS = f"""
+    Screen {{
+        background: {COLOR_BG};
+    }}
 
-    StatusBar {
+    StatusBar {{
         dock: bottom;
         height: 1;
-        background: #16161e;
-        color: #a9b1d6;
-    }
+        background: {COLOR_STATUS_BAR_BG};
+        color: {COLOR_TEXT};
+    }}
 
     /* Left Sidebar (Tree) */
-    #sidebar {
+    #sidebar {{
         width: 30%;
         height: 100%;
-        border-right: solid #565f89;
-        background: #16161e;
-    }
+        border-right: solid {COLOR_BORDER};
+        background: {COLOR_SIDEBAR_BG};
+    }}
 
-    Tree {
-        background: #16161e;
-        color: #a9b1d6;
+    Tree {{
+        background: {COLOR_SIDEBAR_BG};
+        color: {COLOR_TEXT};
         padding: 1;
-    }
+    }}
 
     /* Right Content (Tabs) */
-    #main_content {
+    #main_content {{
         width: 70%;
         height: 100%;
-    }
+    }}
 
-    TabbedContent {
+    TabbedContent {{
         height: 100%;
-    }
+    }}
 
     /* Content Areas */
-    RichLog {
-        background: #24283b;
-        color: #c0caf5;
+    RichLog {{
+        background: {COLOR_CONTENT_BG};
+        color: {COLOR_TEXT_HIGHLIGHT};
         border: none;
-    }
+    }}
 
-    .code_view {
-        background: #24283b;
+    .code_view {{
+        background: {COLOR_CONTENT_BG};
         padding: 1;
         width: 100%;
         height: auto;
-    }
+    }}
 
-    #search_box {
+    #search_box {{
         dock: top;
         display: none;
-        background: #24283b;
-        color: #c0caf5;
-        border: tall #565f89;
-    }
+        background: {COLOR_CONTENT_BG};
+        color: {COLOR_TEXT_HIGHLIGHT};
+        border: tall {COLOR_BORDER};
+    }}
 
-    #search_box.visible {
+    #search_box.visible {{
         display: block;
-    }
+    }}
 
-    #why_container {
+    #why_container {{
         padding: 1 2;
-        background: #1a1b26;
-        border: thick #565f89;
+        background: {COLOR_BG};
+        border: thick {COLOR_BORDER};
         width: 60%;
         height: 60%;
-    }
+    }}
 
-    #why_title {
+    #why_title {{
         text-align: center;
-        background: #565f89;
+        background: {COLOR_HEADER_BG};
         color: white;
         margin-bottom: 1;
-    }
+    }}
 
-    #confirm_container {
+    #confirm_container {{
         padding: 1 2;
-        background: #1a1b26;
-        border: thick #565f89;
+        background: {COLOR_BG};
+        border: thick {COLOR_BORDER};
         width: 40%;
         height: 20%;
-    }
+    }}
 
-    #confirm_message {
+    #confirm_message {{
         text-align: center;
         margin-bottom: 1;
-    }
+    }}
 
-    #confirm_actions {
+    #confirm_actions {{
         align: center middle;
-    }
+    }}
 
-    #confirm_actions Button {
+    #confirm_actions Button {{
         margin: 0 1;
-    }
+    }}
 
-    #var_container {
+    #var_container {{
         padding: 1 2;
-        background: #1a1b26;
-        border: thick #565f89;
+        background: {COLOR_BG};
+        border: thick {COLOR_BORDER};
         width: 80%;
         height: 80%;
-    }
+    }}
 
-    #var_title {
+    #var_title {{
         text-align: center;
-        background: #565f89;
+        background: {COLOR_HEADER_BG};
         color: white;
         margin-bottom: 1;
-    }
+    }}
 
-    #var_input.hidden {
+    #var_input.hidden {{
         display: none;
-    }
+    }}
     """
 
     COMMANDS = App.COMMANDS | {EctopCommands}
@@ -218,11 +233,15 @@ class Ectop(App):
         Binding("u", "resume", "Resume"),
         Binding("k", "kill", "Kill"),
         Binding("f", "force", "Force Complete"),
+        Binding("F", "cycle_filter", "Cycle Filter"),
+        Binding("R", "requeue", "Requeue"),
+        Binding("c", "copy_path", "Copy Path"),
         Binding("/", "search", "Search"),
         Binding("w", "why", "Why?"),
         Binding("e", "edit_script", "Edit & Rerun"),
         Binding("t", "toggle_live", "Toggle Live Log"),
         Binding("v", "variables", "Variables"),
+        Binding("ctrl+f", "search_content", "Search in Content"),
     ]
 
     def __init__(
@@ -470,6 +489,44 @@ class Ectop(App):
         """
         self._run_client_command("force_complete", self.get_selected_path())
 
+    def action_cycle_filter(self) -> None:
+        """
+        Cycle through tree filters.
+
+        Returns
+        -------
+        None
+        """
+        self.query_one("#suite_tree", SuiteTree).action_cycle_filter()
+
+    def action_requeue(self) -> None:
+        """
+        Requeue the selected node.
+
+        Returns
+        -------
+        None
+        """
+        self._run_client_command("requeue", self.get_selected_path())
+
+    def action_copy_path(self) -> None:
+        """
+        Copy the selected node path to the clipboard.
+
+        Returns
+        -------
+        None
+        """
+        path = self.get_selected_path()
+        if path:
+            if hasattr(self, "copy_to_clipboard"):
+                self.copy_to_clipboard(path)
+                self.notify(f"Copied to clipboard: {path}")
+            else:
+                self.notify(f"Node path: {path}")
+        else:
+            self.notify("No node selected", severity="warning")
+
     def action_toggle_live(self) -> None:
         """
         Toggle live log updates.
@@ -527,6 +584,16 @@ class Ectop(App):
             self.notify("No node selected", severity="warning")
             return
         self.push_screen(VariableTweaker(path, self.ecflow_client))
+
+    def action_search_content(self) -> None:
+        """
+        Trigger content search in the main content area.
+
+        Returns
+        -------
+        None
+        """
+        self.query_one("#main_content", MainContent).action_search()
 
     @work(thread=True)
     def action_edit_script(self) -> None:

@@ -11,6 +11,7 @@ Sidebar widget for the ecFlow suite tree.
 
 from __future__ import annotations
 
+import threading
 from typing import TYPE_CHECKING, Any
 
 import ecflow
@@ -57,6 +58,8 @@ class SuiteTree(Tree[str]):
         """
         super().__init__(*args, **kwargs)
         self.defs: Defs | None = None
+        self.current_filter: str | None = None
+        self.filters: list[str | None] = [None, "aborted", "active", "queued", "submitted", "suspended"]
 
     def update_tree(self, client_host: str, client_port: int, defs: Defs | None) -> None:
         """
@@ -86,12 +89,41 @@ class SuiteTree(Tree[str]):
             self.root.label = "Server Empty"
             return
 
-        self.root.label = f"{ICON_SERVER} {client_host}:{client_port}"
+        filter_str = f" [Filter: {self.current_filter}]" if self.current_filter else ""
+        self.root.label = f"{ICON_SERVER} {client_host}:{client_port}{filter_str}"
+
         for suite in defs.suites:
-            self._add_node_to_ui(self.root, suite)
+            if self._should_show_node(suite):
+                self._add_node_to_ui(self.root, suite)
 
         # Trigger background cache building for search
         self._build_all_paths_cache_worker()
+
+    def _should_show_node(self, node: Node) -> bool:
+        """
+        Determine if a node should be shown based on the current filter.
+
+        Parameters
+        ----------
+        node : ecflow.Node
+            The ecFlow node to check.
+
+        Returns
+        -------
+        bool
+            True if the node or any of its descendants match the filter.
+        """
+        if not self.current_filter:
+            return True
+
+        state = str(node.get_state())
+        if state == self.current_filter:
+            return True
+
+        if hasattr(node, "nodes"):
+            return any(self._should_show_node(child) for child in node.nodes)
+
+        return False
 
     @work(thread=True)
     def _build_all_paths_cache_worker(self) -> None:
@@ -117,6 +149,41 @@ class SuiteTree(Tree[str]):
                 paths.append(node.abs_node_path())
 
         self._all_paths_cache = paths
+
+    def action_cycle_filter(self) -> None:
+        """
+        Cycle through available status filters and refresh the tree.
+
+        Returns
+        -------
+        None
+        """
+        current_idx = self.filters.index(self.current_filter)
+        next_idx = (current_idx + 1) % len(self.filters)
+        self.current_filter = self.filters[next_idx]
+
+        # We need to refresh the tree from local defs
+        if self.defs:
+            # Parse host/port from current root label if possible, or just use placeholders
+            label_text = str(self.root.label)
+            host_port = "Unknown"
+            if ":" in label_text:
+                parts = label_text.split(" ")
+                for p in parts:
+                    if ":" in p:
+                        host_port = p
+                        break
+
+            if ":" in host_port:
+                host, port = host_port.split(":", 1)
+                # Remove filter suffix from port if present
+                if "[" in port:
+                    port = port.split("[")[0].strip()
+                self.update_tree(host, int(port), self.defs)
+            else:
+                self.update_tree("Server", 0, self.defs)
+
+        self.app.notify(f"Filter: {self.current_filter or 'All'}")
 
     def _add_node_to_ui(self, parent_ui_node: TreeNode[str], ecflow_node: Node) -> TreeNode[str]:
         """
@@ -209,12 +276,20 @@ class SuiteTree(Tree[str]):
 
         # Check if we have the placeholder
         if len(ui_node.children) == 1 and str(ui_node.children[0].label) == LOADING_PLACEHOLDER:
-            ui_node.children[0].remove()
+            # UI modification must be on main thread
+            if self.app._thread_id == threading.get_ident():
+                ui_node.children[0].remove()
+            else:
+                self.app.call_from_thread(ui_node.children[0].remove)
+
             if sync:
                 ecflow_node = self.defs.find_abs_node(ui_node.data)
                 if ecflow_node and hasattr(ecflow_node, "nodes"):
                     for child in ecflow_node.nodes:
-                        self._add_node_to_ui(ui_node, child)
+                        if self.app._thread_id == threading.get_ident():
+                            self._add_node_to_ui(ui_node, child)
+                        else:
+                            self.app.call_from_thread(self._add_node_to_ui, ui_node, child)
             else:
                 self._load_children_worker(ui_node, ui_node.data)
 
@@ -244,7 +319,8 @@ class SuiteTree(Tree[str]):
         ecflow_node = self.defs.find_abs_node(node_path)
         if ecflow_node and hasattr(ecflow_node, "nodes"):
             for child in ecflow_node.nodes:
-                self.app.call_from_thread(self._add_node_to_ui, ui_node, child)
+                if self._should_show_node(child):
+                    self.app.call_from_thread(self._add_node_to_ui, ui_node, child)
 
     def find_and_select(self, query: str) -> bool:
         """
@@ -296,6 +372,7 @@ class SuiteTree(Tree[str]):
                 return True
         return False
 
+    @work(thread=True)
     def select_by_path(self, path: str) -> None:
         """
         Select a node by its absolute ecFlow path, expanding parents as needed.
@@ -308,9 +385,34 @@ class SuiteTree(Tree[str]):
         Returns
         -------
         None
+
+        Notes
+        -----
+        This is a background worker to avoid blocking the UI thread when
+        loading many nested nodes synchronously.
+        """
+        self._select_by_path_logic(path)
+
+    def _select_by_path_logic(self, path: str) -> None:
+        """
+        The actual logic for selecting a node by path.
+
+        Parameters
+        ----------
+        path : str
+            The absolute path of the node to select.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This method should be called from a background thread as it performs
+        synchronous child loading.
         """
         if path == "/":
-            self.select_node(self.root)
+            self.app.call_from_thread(self.select_node, self.root)
             return
 
         parts = path.strip("/").split("/")
@@ -319,9 +421,9 @@ class SuiteTree(Tree[str]):
         current_path = ""
         for part in parts:
             current_path += "/" + part
-            # Load children synchronously to ensure they are available for selection
+            # Load children synchronously within the worker thread
             self._load_children(current_ui_node, sync=True)
-            current_ui_node.expand()
+            self.app.call_from_thread(current_ui_node.expand)
 
             found = False
             for child in current_ui_node.children:
@@ -332,7 +434,7 @@ class SuiteTree(Tree[str]):
             if not found:
                 return
 
-        self._select_and_reveal(current_ui_node)
+        self.app.call_from_thread(self._select_and_reveal, current_ui_node)
 
     def _select_and_reveal(self, node: TreeNode[str]) -> None:
         """

@@ -53,3 +53,13 @@ EXPR_AND_LABEL = "AND (All must be true)"
 # --- Magic Strings ---
 LOADING_PLACEHOLDER = "loading..."
 INHERITED_VAR_PREFIX = "inh_"
+
+# --- UI Theme Colors ---
+COLOR_BG = "#1a1b26"
+COLOR_SIDEBAR_BG = "#16161e"
+COLOR_CONTENT_BG = "#24283b"
+COLOR_BORDER = "#565f89"
+COLOR_TEXT = "#a9b1d6"
+COLOR_TEXT_HIGHLIGHT = "#c0caf5"
+COLOR_STATUS_BAR_BG = "#16161e"
+COLOR_HEADER_BG = "#565f89"

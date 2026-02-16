@@ -22,6 +22,7 @@ async def test_search_cache_background_building():
     """
     Test that the search cache is built in the background after update_tree.
     """
+
     class TestApp(App):
         def compose(self):
             yield SuiteTree("Test")
@@ -52,11 +53,13 @@ async def test_search_cache_background_building():
         assert hasattr(tree, "_all_paths_cache")
         assert tree._all_paths_cache == ["/suite"]
 
+
 @pytest.mark.asyncio
 async def test_find_and_select_fallback():
     """
     Test that find_and_select builds the cache if it's missing (fallback).
     """
+
     class TestApp(App):
         def compose(self):
             yield SuiteTree("Test")
@@ -77,8 +80,11 @@ async def test_find_and_select_fallback():
         tree.defs = mock_defs
         tree._all_paths_cache = None
 
-        # This should trigger the fallback logic
-        found = tree.find_and_select("suite")
+        # This should trigger the fallback logic.
+        # We mock select_by_path because it's now a worker that uses call_from_thread,
+        # which fails when called from the same thread in tests.
+        with mock.patch.object(tree, "select_by_path"):
+            found = tree.find_and_select("suite")
 
         assert found is True
         assert tree._all_paths_cache == ["/suite"]

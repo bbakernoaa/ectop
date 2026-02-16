@@ -1,4 +1,9 @@
-# .. note:: warning: "If you modify features, API, or usage, you MUST update the documentation immediately."
+# #############################################################################
+# WARNING: If you modify features, API, or usage, you MUST update the
+# documentation immediately.
+# #############################################################################
+from __future__ import annotations
+
 import asyncio
 import sys
 from unittest.mock import MagicMock
@@ -16,20 +21,20 @@ sys.modules["ecflow"] = mock_ecflow
 
 
 class Node:
-    def __init__(self, name, parent=None):
+    def __init__(self, name: str, parent: Node | None = None) -> None:
         self._name = name
         self._parent = parent
 
-    def name(self):
+    def name(self) -> str:
         return self._name
 
-    def get_state(self):
+    def get_state(self) -> str:
         return "active"
 
-    def is_suspended(self):
+    def is_suspended(self) -> bool:
         return False
 
-    def abs_node_path(self):
+    def abs_node_path(self) -> str:
         if self._parent:
             return f"{self._parent.abs_node_path()}/{self._name}"
         return f"/{self._name}"
@@ -40,23 +45,39 @@ class Task(Node):
 
 
 class Family(Node):
-    def __init__(self, name, parent=None, children=None):
+    def __init__(self, name: str, parent: Node | None = None, children: list[Node] | None = None) -> None:
         super().__init__(name, parent)
         self.nodes = children or []
         for child in self.nodes:
             child._parent = self
 
+    def get_all_nodes(self) -> list[Node]:
+        nodes: list[Node] = []
+        for node in self.nodes:
+            nodes.append(node)
+            if isinstance(node, Family):
+                nodes.extend(node.get_all_nodes())
+        return nodes
+
 
 class Suite(Family):
-    def abs_node_path(self):
+    def abs_node_path(self) -> str:
         return f"/{self._name}"
+
+    def get_all_nodes(self) -> list[Node]:
+        nodes: list[Node] = []
+        for node in self.nodes:
+            nodes.append(node)
+            if isinstance(node, Family):
+                nodes.extend(node.get_all_nodes())
+        return nodes
 
 
 class Defs:
-    def __init__(self, suites=None):
+    def __init__(self, suites: list[Suite] | None = None) -> None:
         self.suites = suites or []
 
-    def find_abs_node(self, path):
+    def find_abs_node(self, path: str) -> Node | None:
         # Very simple mock implementation
         if path == "/tutorial":
             return self.suites[0]
