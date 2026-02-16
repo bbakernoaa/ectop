@@ -326,32 +326,65 @@ class WhyInspector(ModalScreen[None]):
         -------
         None
         """
-        if " or " in expr_str:
-            parts = expr_str.split(" or ")
-            or_node = parent_ui_node.add(EXPR_OR_LABEL, expand=True)
-            for part in parts:
-                self._parse_expression(or_node, part.strip().strip("()"), defs)
+        expr_str = expr_str.strip()
+        if not expr_str:
             return
 
-        if " and " in expr_str:
-            parts = expr_str.split(" and ")
-            and_node = parent_ui_node.add(EXPR_AND_LABEL, expand=True)
-            for part in parts:
-                self._parse_expression(and_node, part.strip().strip("()"), defs)
-            return
+        # Remove outer parentheses if they wrap the whole expression
+        while expr_str.startswith("(") and expr_str.endswith(")"):
+            depth = 0
+            is_pair = True
+            for i, char in enumerate(expr_str):
+                if char == "(":
+                    depth += 1
+                elif char == ")":
+                    depth -= 1
+                if depth == 0 and i < len(expr_str) - 1:
+                    is_pair = False
+                    break
+            if is_pair:
+                expr_str = expr_str[1:-1].strip()
+            else:
+                break
+
+        # Find top-level ' or ' or ' and ' (lowest precedence first)
+        for op, label in [(" or ", EXPR_OR_LABEL), (" and ", EXPR_AND_LABEL)]:
+            depth = 0
+            for i in range(len(expr_str)):
+                if expr_str[i] == "(":
+                    depth += 1
+                elif expr_str[i] == ")":
+                    depth -= 1
+                elif depth == 0 and expr_str[i : i + len(op)] == op:
+                    op_node = parent_ui_node.add(label, expand=True)
+                    left = expr_str[:i].strip()
+                    right = expr_str[i + len(op) :].strip()
+                    self._parse_expression(op_node, left, defs)
+                    self._parse_expression(op_node, right, defs)
+                    return
 
         # Leaf node (actual condition)
-        # Match paths and optional state comparison
-        match = re.search(r"(/[a-zA-Z0-9_/]+)(\s*==\s*(\w+))?", expr_str)
+        # Support various comparisons: ==, !=, <, >, <=, >=
+        match = re.search(r"(/[a-zA-Z0-9_/]+)(\s*(==|!=|<=|>=|<|>)\s*(\w+))?", expr_str)
         if match:
             path = match.group(1)
-            expected_state = match.group(3) or "complete"
+            op = match.group(3) or "=="
+            expected_state = match.group(4) or "complete"
             target_node = defs.find_abs_node(path)
+
             if target_node:
                 actual_state = str(target_node.get_state())
-                is_met = actual_state == expected_state
+                # Basic evaluation logic for common states
+                is_met = False
+                if op == "==":
+                    is_met = actual_state == expected_state
+                elif op == "!=":
+                    is_met = actual_state != expected_state
+                # Other operators are harder to evaluate without state ordering knowledge,
+                # but we show the status anyway.
+
                 icon = ICON_MET if is_met else ICON_NOT_MET
-                parent_ui_node.add(f"{icon} {path} == {actual_state} (Expected: {expected_state})", data=path)
+                parent_ui_node.add(f"{icon} {path} {op} {actual_state} (Expected: {expected_state})", data=path)
             else:
                 parent_ui_node.add(f"{ICON_UNKNOWN} {path} (Not found)")
         else:

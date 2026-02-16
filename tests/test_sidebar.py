@@ -60,7 +60,7 @@ def test_update_tree(mock_defs: MagicMock) -> None:
     mock_defs : MagicMock
         The mock ecFlow definitions.
     """
-    tree = SuiteTree.__new__(SuiteTree)
+    tree = SuiteTree("Test")
     tree.clear = MagicMock()
     tree.root = MagicMock()
 
@@ -82,7 +82,7 @@ def test_load_children(mock_defs: MagicMock) -> None:
     mock_defs : MagicMock
         The mock ecFlow definitions.
     """
-    tree = SuiteTree.__new__(SuiteTree)
+    tree = SuiteTree("Test")
     tree.defs = mock_defs
 
     ui_node = MagicMock()
@@ -91,7 +91,14 @@ def test_load_children(mock_defs: MagicMock) -> None:
     placeholder.label = Text("loading...")
     ui_node.children = [placeholder]
 
-    with patch.object(SuiteTree, "_load_children_worker") as mock_worker:
+    with patch.object(SuiteTree, "app", new=MagicMock()) as mock_app, patch.object(
+        SuiteTree, "_load_children_worker"
+    ) as mock_worker:
+        # Ensure it looks like it's on the main thread for simpler testing
+        import threading
+
+        mock_app._thread_id = threading.get_ident()
+
         tree._load_children(ui_node)
 
         placeholder.remove.assert_called_once()
@@ -107,7 +114,7 @@ def test_load_children_worker(mock_defs: MagicMock) -> None:
     mock_defs : MagicMock
         The mock ecFlow definitions.
     """
-    tree = SuiteTree.__new__(SuiteTree)
+    tree = SuiteTree("Test")
     tree.defs = mock_defs
 
     ui_node = MagicMock()
@@ -134,7 +141,7 @@ def test_select_by_path(mock_defs: MagicMock) -> None:
     mock_defs : MagicMock
         The mock ecFlow definitions.
     """
-    tree = SuiteTree.__new__(SuiteTree)
+    tree = SuiteTree("Test")
     tree.defs = mock_defs
     tree.root = MagicMock()
     tree.root.data = "/"
@@ -149,13 +156,16 @@ def test_select_by_path(mock_defs: MagicMock) -> None:
     child_t2a.data = "/s2/t2a"
     child_s2.children = [child_t2a]
 
-    with patch.object(SuiteTree, "_load_children") as mock_load, patch.object(SuiteTree, "_select_and_reveal") as mock_select:
-        tree.select_by_path("/s2/t2a")
+    with patch.object(SuiteTree, "app", new=MagicMock()) as mock_app, patch.object(
+        SuiteTree, "_load_children"
+    ) as mock_load, patch.object(SuiteTree, "_select_and_reveal") as mock_select:
+        # Use logic method for synchronous test
+        tree._select_by_path_logic("/s2/t2a")
 
         # Should have called _load_children for root and s2
         assert mock_load.call_count >= 2
-        child_s2.expand.assert_called()
-        mock_select.assert_called_with(child_t2a)
+        mock_app.call_from_thread.assert_any_call(child_s2.expand)
+        mock_app.call_from_thread.assert_called_with(mock_select, child_t2a)
 
 
 def test_find_and_select_caching(mock_defs: MagicMock) -> None:
@@ -167,27 +177,27 @@ def test_find_and_select_caching(mock_defs: MagicMock) -> None:
     mock_defs : MagicMock
         The mock ecFlow definitions.
     """
-    tree = SuiteTree.__new__(SuiteTree)
+    tree = SuiteTree("Test")
     tree.defs = mock_defs
-    tree.clear = MagicMock()
-    tree.root = MagicMock()
+    with patch.object(SuiteTree, "app", new=MagicMock()):
+        tree.root = MagicMock()
 
-    with patch.object(SuiteTree, "cursor_node", new=None), patch.object(SuiteTree, "select_by_path") as mock_select, patch.object(
-        SuiteTree, "_add_node_to_ui"
-    ):
-        # First call should build cache
-        tree.find_and_select("t2a")
-        assert hasattr(tree, "_all_paths_cache")
-        assert tree._all_paths_cache is not None
-        assert "/s2/t2a" in tree._all_paths_cache
-        mock_select.assert_called_with("/s2/t2a")
+        with patch.object(SuiteTree, "cursor_node", new=None), patch.object(
+            SuiteTree, "select_by_path"
+        ) as mock_select, patch.object(SuiteTree, "_add_node_to_ui"):
+            # First call should build cache
+            tree.find_and_select("t2a")
+            assert hasattr(tree, "_all_paths_cache")
+            assert tree._all_paths_cache is not None
+            assert "/s2/t2a" in tree._all_paths_cache
+            mock_select.assert_called_with("/s2/t2a")
 
-        # Modify defs - but cache should persist until update_tree is called
-        tree.defs.suites = []
-        mock_select.reset_mock()
-        tree.find_and_select("t2a")
-        mock_select.assert_called_with("/s2/t2a")  # Still works from cache
+            # Modify defs - but cache should persist until update_tree is called
+            tree.defs.suites = []
+            mock_select.reset_mock()
+            tree.find_and_select("t2a")
+            mock_select.assert_called_with("/s2/t2a")  # Still works from cache
 
-        # update_tree should clear cache
-        tree.update_tree("localhost", 3141, None)
-        assert tree._all_paths_cache is None
+            # update_tree should clear cache
+            tree.update_tree("localhost", 3141, None)
+            assert tree._all_paths_cache is None

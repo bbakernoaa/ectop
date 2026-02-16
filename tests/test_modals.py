@@ -75,9 +75,7 @@ def test_variable_tweaker_inherited_logic(mock_client: MagicMock) -> None:
             tweaker.refresh_vars()
 
             # Should have one row for inherited variable
-            table.add_row.assert_called_once_with(
-                "F_VAR", "F_VAL", f"{VAR_TYPE_INHERITED} (f1)", key="inh_F_VAR"
-            )
+            table.add_row.assert_called_once_with("F_VAR", "F_VAL", f"{VAR_TYPE_INHERITED} (f1)", key="inh_F_VAR")
 
 
 def test_why_inspector_expression_parsing(mock_client: MagicMock) -> None:
@@ -119,9 +117,7 @@ def test_why_inspector_expression_parsing(mock_client: MagicMock) -> None:
     sub_node = MagicMock()
     parent_node.add.return_value = sub_node
 
-    inspector._parse_expression(
-        parent_node, "(/suite/a == complete) or ((/suite/b == active) and (/suite/a == complete))", defs
-    )
+    inspector._parse_expression(parent_node, "(/suite/a == complete) or ((/suite/b == active) and (/suite/a == complete))", defs)
     parent_node.add.assert_any_call(EXPR_OR_LABEL, expand=True)
     sub_node.add.assert_any_call(EXPR_AND_LABEL, expand=True)
 
@@ -137,9 +133,7 @@ def test_variable_tweaker_workers(mock_client: MagicMock) -> None:
     """
     tweaker = VariableTweaker("/node", mock_client)
     tweaker.call_from_thread = MagicMock(side_effect=lambda f, *args, **kwargs: f(*args, **kwargs))
-    with patch.object(VariableTweaker, "app", new=PropertyMock(return_value=MagicMock())), patch.object(
-        tweaker, "refresh_vars"
-    ):
+    with patch.object(VariableTweaker, "app", new=PropertyMock(return_value=MagicMock())), patch.object(tweaker, "refresh_vars"):
         # Call the logic methods directly for testing
         tweaker._delete_variable_logic("VAR1")
         mock_client.alter.assert_any_call("/node", "delete_variable", "VAR1")

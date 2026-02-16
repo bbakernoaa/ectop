@@ -8,19 +8,29 @@ from unittest.mock import MagicMock
 
 # Create dummy types for ecflow classes so isinstance() works
 class MockNode:
-    def abs_node_path(self) -> str: return ""
-    def get_state(self) -> str: return ""
-    def name(self) -> str: return ""
-    def get_all_nodes(self) -> list: return []
+    def abs_node_path(self) -> str:
+        return ""
+
+    def get_state(self) -> str:
+        return ""
+
+    def name(self) -> str:
+        return ""
+
+    def get_all_nodes(self) -> list:
+        return []
+
 
 class MockFamily(MockNode):
     def __init__(self):
         self.nodes = []
 
+
 class MockSuite(MockNode):
     def __init__(self):
         self.suites = []
         self.nodes = []
+
 
 # Mock ecflow globally
 mock_ecflow = MagicMock()
