@@ -21,7 +21,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.command import Hit, Hits, Provider
 from textual.containers import Container, Horizontal
-from textual.widgets import Footer, Header, Input, Tree
+from textual.widgets import Footer, Header, Input
 
 from ectop.client import EcflowClient
 from ectop.constants import (
