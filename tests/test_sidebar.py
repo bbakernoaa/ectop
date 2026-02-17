@@ -94,14 +94,10 @@ def test_load_children(mock_defs: MagicMock) -> None:
     with patch.object(SuiteTree, "app", new=MagicMock()) as mock_app, patch.object(
         SuiteTree, "_load_children_worker"
     ) as mock_worker:
-        # Ensure it looks like it's on the main thread for simpler testing
-        import threading
-
-        mock_app._thread_id = threading.get_ident()
-
         tree._load_children(ui_node)
 
-        placeholder.remove.assert_called_once()
+        # placeholder.remove is now called via call_from_thread
+        mock_app.call_from_thread.assert_any_call(placeholder.remove)
         mock_worker.assert_called_with(ui_node, "/s2")
 
 
@@ -183,20 +179,47 @@ def test_find_and_select_caching(mock_defs: MagicMock) -> None:
         tree.root = MagicMock()
 
         with patch.object(SuiteTree, "cursor_node", new=None), patch.object(
-            SuiteTree, "select_by_path"
-        ) as mock_select, patch.object(SuiteTree, "_add_node_to_ui"):
-            # First call should build cache
+            SuiteTree, "_select_by_path_logic"
+        ) as mock_select_logic, patch.object(SuiteTree, "_add_node_to_ui"):
+            # We call the method directly, bypassing @work if we want it synchronous in test
+            # Or we can just mock the @work decorator if needed, but here we can just
+            # test the logic by calling it.
+            # Since find_and_select is decorated, calling it returns a Worker.
+            # To test it properly we might need to call tree.find_and_select._raw_method if Textual allowed it,
+            # but usually we just test the logic.
+
+            # Let's just mock the decorator by patching 'textual.work' before importing or something.
+            # Alternatively, since it's already decorated, let's just wait for it if possible,
+            # or just call it and hope for the best if it's not actually threaded in this environment.
+            # Actually, in tests, it might run in a thread.
+
+            # Better approach: mock the whole find_and_select for UI tests,
+            # and test the logic separately if possible.
+            # But here find_and_select contains the logic.
+
             tree.find_and_select("t2a")
             assert hasattr(tree, "_all_paths_cache")
             assert tree._all_paths_cache is not None
             assert "/s2/t2a" in tree._all_paths_cache
-            mock_select.assert_called_with("/s2/t2a")
+            # mock_select_logic should be called
+            # We might need a small sleep or join the worker, but let's see.
+            import time
+
+            for _ in range(10):
+                if mock_select_logic.called:
+                    break
+                time.sleep(0.1)
+            mock_select_logic.assert_called_with("/s2/t2a")
 
             # Modify defs - but cache should persist until update_tree is called
             tree.defs.suites = []
-            mock_select.reset_mock()
+            mock_select_logic.reset_mock()
             tree.find_and_select("t2a")
-            mock_select.assert_called_with("/s2/t2a")  # Still works from cache
+            for _ in range(10):
+                if mock_select_logic.called:
+                    break
+                time.sleep(0.1)
+            mock_select_logic.assert_called_with("/s2/t2a")  # Still works from cache
 
             # update_tree should clear cache
             tree.update_tree("localhost", 3141, None)

@@ -81,10 +81,19 @@ async def test_find_and_select_fallback():
         tree._all_paths_cache = None
 
         # This should trigger the fallback logic.
-        # We mock select_by_path because it's now a worker that uses call_from_thread,
-        # which fails when called from the same thread in tests.
-        with mock.patch.object(tree, "select_by_path"):
-            found = tree.find_and_select("suite")
+        # We mock _select_by_path_logic because it's now called by find_and_select.
+        with mock.patch.object(tree, "_select_by_path_logic") as mock_select:
+            tree.find_and_select("suite")
+            # find_and_select is now a worker, but since we are calling it
+            # it might run or we might need to wait.
+            # In run_test() environment, workers might behave differently.
+            # Let's check if mock_select was called.
+            import asyncio
 
-        assert found is True
+            for _ in range(10):
+                if mock_select.called:
+                    break
+                await asyncio.sleep(0.1)
+
+            assert mock_select.called
         assert tree._all_paths_cache == ["/suite"]

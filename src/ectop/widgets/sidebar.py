@@ -276,20 +276,15 @@ class SuiteTree(Tree[str]):
 
         # Check if we have the placeholder
         if len(ui_node.children) == 1 and str(ui_node.children[0].label) == LOADING_PLACEHOLDER:
-            # UI modification must be on main thread
-            if self.app._thread_id == threading.get_ident():
-                ui_node.children[0].remove()
-            else:
-                self.app.call_from_thread(ui_node.children[0].remove)
+            # UI modification must be scheduled on the main thread
+            placeholder = ui_node.children[0]
+            self._safe_call(placeholder.remove)
 
             if sync:
                 ecflow_node = self.defs.find_abs_node(ui_node.data)
                 if ecflow_node and hasattr(ecflow_node, "nodes"):
                     for child in ecflow_node.nodes:
-                        if self.app._thread_id == threading.get_ident():
-                            self._add_node_to_ui(ui_node, child)
-                        else:
-                            self.app.call_from_thread(self._add_node_to_ui, ui_node, child)
+                        self._safe_call(self._add_node_to_ui, ui_node, child)
             else:
                 self._load_children_worker(ui_node, ui_node.data)
 
@@ -322,11 +317,13 @@ class SuiteTree(Tree[str]):
                 if self._should_show_node(child):
                     self.app.call_from_thread(self._add_node_to_ui, ui_node, child)
 
-    def find_and_select(self, query: str) -> bool:
+    @work(exclusive=True, thread=True)
+    def find_and_select(self, query: str) -> None:
         """
         Find nodes matching query in the ecFlow definitions and select them.
 
-        This handles searching through unloaded parts of the tree.
+        This handles searching through unloaded parts of the tree in a
+        background thread to keep the UI responsive.
 
         Parameters
         ----------
@@ -335,11 +332,14 @@ class SuiteTree(Tree[str]):
 
         Returns
         -------
-        bool
-            True if a match was found and selected, False otherwise.
+        None
+
+        Notes
+        -----
+        This is a background worker.
         """
         if not self.defs:
-            return False
+            return
 
         query = query.lower()
 
@@ -355,8 +355,10 @@ class SuiteTree(Tree[str]):
 
         all_paths = self._all_paths_cache
 
-        # Start from current cursor if possible
-        current_path = self.cursor_node.data if self.cursor_node else None
+        # Get current cursor state on main thread
+        cursor_node = self.cursor_node
+        current_path = cursor_node.data if cursor_node else None
+
         start_index = 0
         if current_path and current_path in all_paths:
             try:
@@ -365,12 +367,46 @@ class SuiteTree(Tree[str]):
                 start_index = 0
 
         # Search from start_index to end, then wrap around
+        found_path = None
         for i in range(len(all_paths)):
             path = all_paths[(start_index + i) % len(all_paths)]
             if query in path.lower():
-                self.select_by_path(path)
-                return True
-        return False
+                found_path = path
+                break
+
+        if found_path:
+            self._select_by_path_logic(found_path)
+        else:
+            self._safe_call(self.app.notify, f"No match found for '{query}'", severity="warning")
+
+    def _safe_call(self, callback: Any, *args: Any, **kwargs: Any) -> Any:
+        """
+        Safely call a UI-related function from either the main thread or a worker.
+
+        Parameters
+        ----------
+        callback : Any
+            The function to call.
+        *args : Any
+            Positional arguments.
+        **kwargs : Any
+            Keyword arguments.
+
+        Returns
+        -------
+        Any
+            The result of the call if synchronous, or None if scheduled.
+        """
+        try:
+            # Check if we are on the main thread.
+            # Using private access as Textual doesn't provide a public way yet.
+            if self.app._thread_id == threading.get_ident():
+                return callback(*args, **kwargs)
+        except (AttributeError, RuntimeError):
+            # App might not be fully initialized in some tests
+            pass
+
+        return self.app.call_from_thread(callback, *args, **kwargs)
 
     @work(thread=True)
     def select_by_path(self, path: str) -> None:
@@ -423,7 +459,7 @@ class SuiteTree(Tree[str]):
             current_path += "/" + part
             # Load children synchronously within the worker thread
             self._load_children(current_ui_node, sync=True)
-            self.app.call_from_thread(current_ui_node.expand)
+            self._safe_call(current_ui_node.expand)
 
             found = False
             for child in current_ui_node.children:
@@ -434,7 +470,7 @@ class SuiteTree(Tree[str]):
             if not found:
                 return
 
-        self.app.call_from_thread(self._select_and_reveal, current_ui_node)
+        self._safe_call(self._select_and_reveal, current_ui_node)
 
     def _select_and_reveal(self, node: TreeNode[str]) -> None:
         """
