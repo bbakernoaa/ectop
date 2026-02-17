@@ -365,7 +365,8 @@ class WhyInspector(ModalScreen[None]):
 
         # Leaf node (actual condition)
         # Support various comparisons: ==, !=, <, >, <=, >=
-        match = re.search(r"(/[a-zA-Z0-9_/]+)(\s*(==|!=|<=|>=|<|>)\s*(\w+))?", expr_str)
+        # Regex supports paths with alphanumeric, underscores, dashes, and dots.
+        match = re.search(r"(/[a-zA-Z0-9_\-\./]+)(\s*(==|!=|<=|>=|<|>)\s*(\w+))?", expr_str)
         if match:
             path = match.group(1)
             op = match.group(3) or "=="
@@ -384,7 +385,13 @@ class WhyInspector(ModalScreen[None]):
                 # but we show the status anyway.
 
                 icon = ICON_MET if is_met else ICON_NOT_MET
-                parent_ui_node.add(f"{icon} {path} {op} {actual_state} (Expected: {expected_state})", data=path)
+                label = f"{icon} {path} {op} {actual_state} (Expected: {expected_state})"
+
+                # Special highlighting for aborted nodes
+                if actual_state == "aborted":
+                    label = f"[b red]{label} (STOPPED HERE)[/]"
+
+                parent_ui_node.add(label, data=path)
             else:
                 parent_ui_node.add(f"{ICON_UNKNOWN} {path} (Not found)")
         else:

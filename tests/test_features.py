@@ -70,7 +70,9 @@ def test_search_logic() -> None:
     tree.scroll_to_node = MagicMock()
 
     # We need to manually call the method since it's an instance method
-    with patch.object(SuiteTree, "cursor_node", new_callable=PropertyMock) as mock_cursor:
+    with patch.object(SuiteTree, "cursor_node", new_callable=PropertyMock) as mock_cursor, patch.object(
+        SuiteTree, "app", new=MagicMock()
+    ):
         mock_cursor.return_value = None
         # Mocking the definition walk
         suite = MagicMock()
@@ -82,11 +84,11 @@ def test_search_logic() -> None:
         suite.get_all_nodes.return_value = [node1_ecf, node2_ecf]
         tree.defs.suites = [suite]
 
-        # select_by_path is called instead of _select_and_reveal directly in find_and_select
-        tree.select_by_path = MagicMock()
+        # In the refactored find_and_select, it calls _select_by_path_logic
+        tree._select_by_path_logic = MagicMock()
 
-        assert SuiteTree.find_and_select(tree, "post") is True
-    tree.select_by_path.assert_called_with("/suite/post_proc")
+        SuiteTree.find_and_select(tree, "post")
+        tree._select_by_path_logic.assert_called_with("/suite/post_proc")
 
 
 def test_live_log_update() -> None:

@@ -356,6 +356,8 @@ class Ectop(App):
         if not self.ecflow_client:
             return
 
+        self.call_from_thread(self.notify, "Refreshing tree...")
+
         tree = self.query_one("#suite_tree", SuiteTree)
         status_bar = self.query_one("#status_bar", StatusBar)
         try:
@@ -712,10 +714,7 @@ class Ectop(App):
             query = event.value
             if query:
                 tree = self.query_one("#suite_tree", SuiteTree)
-                if tree.find_and_select(query):
-                    pass
-                else:
-                    self.notify(f"No match found for '{query}'", severity="warning")
+                tree.find_and_select(query)
 
     def on_input_changed(self, event: Input.Changed) -> None:
         """
