@@ -33,9 +33,12 @@ from ectop.constants import (
     COLOR_STATUS_BAR_BG,
     COLOR_TEXT,
     COLOR_TEXT_HIGHLIGHT,
+    DEFAULT_EDITOR,
     DEFAULT_HOST,
     DEFAULT_PORT,
     DEFAULT_REFRESH_INTERVAL,
+    ERROR_CONNECTION_FAILED,
+    STATUS_SYNC_ERROR,
 )
 from ectop.widgets.content import MainContent
 from ectop.widgets.modals.variables import VariableTweaker
@@ -335,7 +338,7 @@ class Ectop(App):
             # Initial refresh
             self.action_refresh()
         except RuntimeError as e:
-            self.call_from_thread(self.notify, f"Connection Failed: {e}", severity="error", timeout=10)
+            self.call_from_thread(self.notify, f"{ERROR_CONNECTION_FAILED}: {e}", severity="error", timeout=10)
             tree = self.query_one("#suite_tree", SuiteTree)
             self.call_from_thread(self._update_tree_error, tree)
         except Exception as e:
@@ -354,7 +357,7 @@ class Ectop(App):
         -------
         None
         """
-        tree.root.label = "[red]Connection Failed (Check Host/Port)[/]"
+        tree.root.label = f"[red]{ERROR_CONNECTION_FAILED} (Check Host/Port)[/]"
 
     @work(exclusive=True, thread=True)
     def action_refresh(self) -> None:
@@ -387,7 +390,9 @@ class Ectop(App):
             self.call_from_thread(status_bar.update_status, self.ecflow_client.host, self.ecflow_client.port, status=status)
             self.call_from_thread(self.notify, "Tree Refreshed")
         except RuntimeError as e:
-            self.call_from_thread(status_bar.update_status, self.ecflow_client.host, self.ecflow_client.port, status="Sync Error")
+            self.call_from_thread(
+                status_bar.update_status, self.ecflow_client.host, self.ecflow_client.port, status=STATUS_SYNC_ERROR
+            )
             self.call_from_thread(self.notify, f"Refresh Error: {e}", severity="error")
         except Exception as e:
             self.call_from_thread(self.notify, f"Unexpected Error: {e}", severity="error")
@@ -685,7 +690,7 @@ class Ectop(App):
         old_content : str
             The original content of the script.
         """
-        editor = os.environ.get("EDITOR", "vi")
+        editor = os.environ.get("EDITOR", DEFAULT_EDITOR)
         with self.suspend():
             subprocess.run([editor, temp_path], check=False)
 

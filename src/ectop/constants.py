@@ -52,7 +52,21 @@ EXPR_AND_LABEL = "AND (All must be true)"
 
 # --- Magic Strings ---
 LOADING_PLACEHOLDER = "loading..."
+"""Placeholder text for lazy-loaded tree nodes."""
 INHERITED_VAR_PREFIX = "inh_"
+"""Prefix for inherited variable keys in the VariableTweaker."""
+SYNTAX_THEME = "monokai"
+"""Default theme for syntax highlighting."""
+DEFAULT_SHELL = "bash"
+"""Default shell for script execution."""
+DEFAULT_EDITOR = "vi"
+"""Default editor for script editing."""
+
+# --- Status & Error Messages ---
+ERROR_CONNECTION_FAILED = "Connection Failed"
+"""Standard error message for connection failures."""
+STATUS_SYNC_ERROR = "Sync Error"
+"""Standard status message for synchronization errors."""
 
 # --- UI Theme Colors ---
 COLOR_BG = "#1a1b26"

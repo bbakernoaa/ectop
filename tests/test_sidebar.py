@@ -64,13 +64,13 @@ def test_update_tree(mock_defs: MagicMock) -> None:
     tree.clear = MagicMock()
     tree.root = MagicMock()
 
-    # Mock _add_node_to_ui to avoid Textual internals
-    with patch.object(SuiteTree, "_add_node_to_ui") as mock_add:
+    # Mock _add_node_to_ui and _populate_tree_worker to avoid Textual internals and threading
+    with patch.object(SuiteTree, "_add_node_to_ui"), patch.object(SuiteTree, "_populate_tree_worker") as mock_worker:
         tree.update_tree("localhost", 3141, mock_defs)
 
         tree.clear.assert_called_once()
         assert tree.defs == mock_defs
-        assert mock_add.call_count == 2  # 2 suites
+        mock_worker.assert_called_once()
 
 
 def test_load_children(mock_defs: MagicMock) -> None:

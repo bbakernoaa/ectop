@@ -135,8 +135,9 @@ def test_variable_tweaker_workers(mock_client: MagicMock) -> None:
     mock_client : MagicMock
         The mock EcflowClient.
     """
-    with patch.object(VariableTweaker, "app", new_callable=PropertyMock) as mock_app, \
-         patch.object(VariableTweaker, "refresh_vars") as mock_refresh:
+    with patch.object(VariableTweaker, "app", new_callable=PropertyMock) as mock_app, patch.object(
+        VariableTweaker, "refresh_vars"
+    ) as mock_refresh:
         app_mock = MagicMock()
         mock_app.return_value = app_mock
         app_mock.call_from_thread = lambda f, *args, **kwargs: f(*args, **kwargs)

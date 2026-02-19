@@ -92,12 +92,30 @@ class SuiteTree(Tree[str]):
         filter_str = f" [Filter: {self.current_filter}]" if self.current_filter else ""
         self.root.label = f"{ICON_SERVER} {client_host}:{client_port}{filter_str}"
 
-        for suite in defs.suites:
-            if self._should_show_node(suite):
-                self._add_node_to_ui(self.root, suite)
+        # Start background worker for tree population to avoid blocking UI
+        self._populate_tree_worker()
 
         # Trigger background cache building for search
         self._build_all_paths_cache_worker()
+
+    @work(thread=True)
+    def _populate_tree_worker(self) -> None:
+        """
+        Worker to populate the tree root with suites in a background thread.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This is a background worker that performs recursive filtering.
+        """
+        if not self.defs:
+            return
+        for suite in self.defs.suites:
+            if self._should_show_node(suite):
+                self._safe_call(self._add_node_to_ui, self.root, suite)
 
     def _should_show_node(self, node: Node) -> bool:
         """

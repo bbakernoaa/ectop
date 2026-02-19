@@ -18,6 +18,8 @@ from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
 from textual.widgets import Input, RichLog, Static, TabbedContent, TabPane
 
+from ectop.constants import SYNTAX_THEME
+
 
 class MainContent(Vertical):
     """
@@ -48,6 +50,7 @@ class MainContent(Vertical):
         super().__init__(*args, **kwargs)
         self.is_live: bool = False
         self.last_log_size: int = 0
+        self._content_cache: dict[str, str] = {}
 
     def compose(self) -> ComposeResult:
         """
@@ -105,6 +108,7 @@ class MainContent(Vertical):
             Whether to append to existing content, by default False.
         """
         widget = self.query_one("#log_output", RichLog)
+        self._content_cache["output"] = content
         if not append:
             widget.clear()
             self.last_log_size = len(content)
@@ -124,8 +128,9 @@ class MainContent(Vertical):
         content : str
             The script content.
         """
+        self._content_cache["script"] = content
         widget = self.query_one("#view_script", Static)
-        syntax = Syntax(content, "bash", theme="monokai", line_numbers=True)
+        syntax = Syntax(content, "bash", theme=SYNTAX_THEME, line_numbers=True)
         widget.update(syntax)
 
     def update_job(self, content: str) -> None:
@@ -137,8 +142,9 @@ class MainContent(Vertical):
         content : str
             The job content.
         """
+        self._content_cache["job"] = content
         widget = self.query_one("#view_job", Static)
-        syntax = Syntax(content, "bash", theme="monokai", line_numbers=True)
+        syntax = Syntax(content, "bash", theme=SYNTAX_THEME, line_numbers=True)
         widget.update(syntax)
 
     def action_search(self) -> None:
@@ -178,10 +184,16 @@ class MainContent(Vertical):
             if not query:
                 return
 
-            self.app.notify(f"Searching for '{query}'...")
-            # For now, we just notify of matches.
-            # Real highlighting would require re-rendering content with markup.
-            # In a future update, we could implement a more sophisticated highlighter.
+            active_tab = self.active
+            cache_key = "output"
+            if active_tab == "tab_script":
+                cache_key = "script"
+            elif active_tab == "tab_job":
+                cache_key = "job"
+
+            content = self._content_cache.get(cache_key, "")
+            matches = content.lower().count(query.lower())
+            self.app.notify(f"Found {matches} matches for '{query}' in {cache_key}")
 
     def show_error(self, widget_id: str, message: str) -> None:
         """
