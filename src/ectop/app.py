@@ -306,7 +306,7 @@ class Ectop(App):
 
         Notes
         -----
-        This triggers a background worker.
+        This method initiates the initial connection and sets up periodic ticks.
         """
         self._initial_connect()
         self.set_interval(self.refresh_interval, self._live_log_tick)
@@ -363,7 +363,7 @@ class Ectop(App):
 
         Notes
         -----
-        This triggers a background worker.
+        This is a synchronous UI update.
         """
         tree.root.label = f"[red]{ERROR_CONNECTION_FAILED} (Check Host/Port)[/]"
 
@@ -374,6 +374,10 @@ class Ectop(App):
         Returns
         -------
         None
+
+        Notes
+        -----
+        This triggers a background worker.
         """
         if not self.ecflow_client:
             return
@@ -629,6 +633,10 @@ class Ectop(App):
         Returns
         -------
         None
+
+        Notes
+        -----
+        This triggers a background worker.
         """
         self._run_client_command("requeue", self.get_selected_path())
 
