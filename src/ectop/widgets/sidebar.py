@@ -27,6 +27,7 @@ from ectop.constants import (
     ICON_UNKNOWN_STATE,
     LOADING_PLACEHOLDER,
     STATE_MAP,
+    TREE_FILTERS,
 )
 
 if TYPE_CHECKING:
@@ -59,7 +60,7 @@ class SuiteTree(Tree[str]):
         super().__init__(*args, **kwargs)
         self.defs: Defs | None = None
         self.current_filter: str | None = None
-        self.filters: list[str | None] = [None, "aborted", "active", "queued", "submitted", "suspended"]
+        self.filters: list[str | None] = TREE_FILTERS
 
     def update_tree(self, client_host: str, client_port: int, defs: Defs | None) -> None:
         """

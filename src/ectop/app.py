@@ -303,6 +303,10 @@ class Ectop(App):
         Returns
         -------
         None
+
+        Notes
+        -----
+        This triggers a background worker.
         """
         self._initial_connect()
         self.set_interval(self.refresh_interval, self._live_log_tick)
@@ -356,10 +360,13 @@ class Ectop(App):
         Returns
         -------
         None
+
+        Notes
+        -----
+        This triggers a background worker.
         """
         tree.root.label = f"[red]{ERROR_CONNECTION_FAILED} (Check Host/Port)[/]"
 
-    @work(exclusive=True, thread=True)
     def action_refresh(self) -> None:
         """
         Fetch suites from server and rebuild the tree.
@@ -367,19 +374,30 @@ class Ectop(App):
         Returns
         -------
         None
-
-        Notes
-        -----
-        This is a background worker that performs blocking I/O.
         """
         if not self.ecflow_client:
             return
 
-        self.call_from_thread(self.notify, "Refreshing tree...")
-
         tree = self.query_one("#suite_tree", SuiteTree)
         status_bar = self.query_one("#status_bar", StatusBar)
+        self._refresh_worker(tree, status_bar)
+
+    @work(exclusive=True, thread=True)
+    def _refresh_worker(self, tree: SuiteTree, status_bar: StatusBar) -> None:
+        """
+        Background worker to refresh the tree.
+
+        Parameters
+        ----------
+        tree : SuiteTree
+            The tree widget.
+        status_bar : StatusBar
+            The status bar widget.
+        """
+        self.call_from_thread(self.notify, "Refreshing tree...")
+
         try:
+            assert self.ecflow_client is not None
             self.ecflow_client.sync_local()
             defs = self.ecflow_client.get_defs()
             status = "Connected"
@@ -440,18 +458,42 @@ class Ectop(App):
         except Exception:
             return None
 
-    @work(thread=True)
     def action_load_node(self) -> None:
-        """Fetch Output, Script, and Job files for the selected node."""
+        """
+        Fetch Output, Script, and Job files for the selected node.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This triggers a background worker.
+        """
         path = self.get_selected_path()
         if not path or not self.ecflow_client:
-            self.call_from_thread(self.notify, "No node selected", severity="warning")
+            self.notify("No node selected", severity="warning")
             return
 
-        self.call_from_thread(self.notify, f"Loading files for {path}...")
         content_area = self.query_one("#main_content", MainContent)
+        self._load_node_worker(path, content_area)
+
+    @work(thread=True)
+    def _load_node_worker(self, path: str, content_area: MainContent) -> None:
+        """
+        Background worker to load node files.
+
+        Parameters
+        ----------
+        path : str
+            The ecFlow node path.
+        content_area : MainContent
+            The content area widget.
+        """
+        self.call_from_thread(self.notify, f"Loading files for {path}...")
 
         try:
+            assert self.ecflow_client is not None
             # Sync to get latest try numbers for filenames
             self.ecflow_client.sync_local()
         except RuntimeError:
@@ -517,6 +559,10 @@ class Ectop(App):
         Returns
         -------
         None
+
+        Notes
+        -----
+        This triggers a background worker.
         """
         self._run_client_command("suspend", self.get_selected_path())
 
@@ -527,6 +573,10 @@ class Ectop(App):
         Returns
         -------
         None
+
+        Notes
+        -----
+        This triggers a background worker.
         """
         self._run_client_command("resume", self.get_selected_path())
 
@@ -537,6 +587,10 @@ class Ectop(App):
         Returns
         -------
         None
+
+        Notes
+        -----
+        This triggers a background worker.
         """
         self._run_client_command("kill", self.get_selected_path())
 
@@ -547,6 +601,10 @@ class Ectop(App):
         Returns
         -------
         None
+
+        Notes
+        -----
+        This triggers a background worker.
         """
         self._run_client_command("force_complete", self.get_selected_path())
 
@@ -557,6 +615,10 @@ class Ectop(App):
         Returns
         -------
         None
+
+        Notes
+        -----
+        This triggers a background worker.
         """
         self.query_one("#suite_tree", SuiteTree).action_cycle_filter()
 
@@ -603,20 +665,44 @@ class Ectop(App):
         if content_area.is_live:
             content_area.active = "tab_output"
 
-    @work(thread=True)
     def _live_log_tick(self) -> None:
-        """Periodic tick to update the live log if enabled."""
+        """
+        Periodic tick to update the live log if enabled.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This may trigger a background worker.
+        """
         if not self.ecflow_client:
             return
         content_area = self.query_one("#main_content", MainContent)
         if content_area.is_live and content_area.active == "tab_output":
             path = self.get_selected_path()
             if path:
-                try:
-                    content = self.ecflow_client.file(path, "jobout")
-                    self.call_from_thread(content_area.update_log, content, append=True)
-                except RuntimeError:
-                    pass
+                self._live_log_worker(path, content_area)
+
+    @work(thread=True)
+    def _live_log_worker(self, path: str, content_area: MainContent) -> None:
+        """
+        Background worker for live log updates.
+
+        Parameters
+        ----------
+        path : str
+            The ecFlow node path.
+        content_area : MainContent
+            The content area widget.
+        """
+        try:
+            assert self.ecflow_client is not None
+            content = self.ecflow_client.file(path, "jobout")
+            self.call_from_thread(content_area.update_log, content, append=True)
+        except RuntimeError:
+            pass
 
     def action_why(self) -> None:
         """
