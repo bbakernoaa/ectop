@@ -51,6 +51,9 @@ EXPR_OR_LABEL = "OR (Any must be true)"
 EXPR_AND_LABEL = "AND (All must be true)"
 
 # --- Magic Strings ---
+TREE_FILTERS: list[str | None] = [None, "aborted", "active", "queued", "submitted", "suspended"]
+"""Available status filters for the suite tree."""
+
 LOADING_PLACEHOLDER = "loading..."
 """Placeholder text for lazy-loaded tree nodes."""
 INHERITED_VAR_PREFIX = "inh_"
