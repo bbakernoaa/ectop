@@ -295,3 +295,41 @@ class EcflowClient:
             self.client.halt_server()
         except RuntimeError as e:
             raise RuntimeError(f"Failed to halt server: {e}") from e
+
+    def version(self) -> str:
+        """
+        Retrieve the ecFlow client version.
+
+        Returns
+        -------
+        str
+            The client version string.
+
+        Raises
+        ------
+        RuntimeError
+            If the version cannot be retrieved.
+        """
+        try:
+            return str(self.client.version())
+        except RuntimeError as e:
+            raise RuntimeError(f"Failed to get client version: {e}") from e
+
+    def server_version(self) -> str:
+        """
+        Retrieve the ecFlow server version.
+
+        Returns
+        -------
+        str
+            The server version string.
+
+        Raises
+        ------
+        RuntimeError
+            If the server version cannot be retrieved.
+        """
+        try:
+            return str(self.client.server_version())
+        except RuntimeError as e:
+            raise RuntimeError(f"Failed to get server version: {e}") from e
