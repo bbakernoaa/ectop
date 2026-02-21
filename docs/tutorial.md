@@ -47,6 +47,13 @@ You should see the `tutorial` suite in the tree on the left.
 
 ## Step 3: Monitoring and Interaction
 
+### The Status Bar
+At the bottom of the screen, you will find the **Status Bar**. This provides critical information at a glance:
+- **Server**: The host and port you are connected to.
+- **Version**: The version of the ecFlow server (e.g., `v5.11.4`).
+- **Status**: The scheduling state of the server (e.g., `RUNNING` or `HALTED`).
+- **Last Sync**: The exact time of the last successful synchronization with the server.
+
 ### The Tree View
 The left sidebar shows the hierarchy of your suite. You can use the arrow keys to navigate and `Enter` to expand or collapse nodes. Icons next to node names indicate their current state (e.g., 🟢 for complete, 🔥 for active).
 
@@ -63,7 +70,30 @@ Try suspending a family or task:
 If a task is running (Active 🔥), you can toggle live log tailing by pressing `t`. The `Output` tab will periodically refresh with new data from the server.
 
 ### Why is it queued?
-If a node is not running when you expect it to, select it and press `w`. The **Why Inspector** will show you the triggers or dependencies that are currently blocking it.
+If a node is not running when you expect it to, select it and press `w`. The **Why Inspector** will show you the triggers or dependencies that are currently blocking it. This view recursively parses trigger expressions, highlighting exactly which parts of the logic are unmet.
+
+### Finding Nodes
+In large suites, finding a specific task can be difficult. Press `/` to open the **Search Box**. As you type, `ectop` will perform a live search across all nodes in the suite. Press `Enter` to jump to and select the next matching node.
+
+### Filtering by Status
+You can filter the tree to show only nodes in a specific state by pressing `F` (**Shift + F**). This cycles through filters like:
+- **Aborted**: Focus only on failed tasks.
+- **Active**: See what is currently running.
+- **Suspended**: Find paused parts of the workflow.
+- **All**: Clear all filters.
+
+The current filter is displayed in the tree root label.
+
+### Managing Variables
+Press `v` to open the **Variable Tweaker**.
+- **User Variables**: Defined specifically on this node.
+- **Generated Variables**: Automatic ecFlow variables (like `ECF_TRYNO`).
+- **Inherited Variables**: Variables defined on parent families or the suite itself.
+
+To override an inherited variable, simply add a new variable with the same name to the current node.
+
+### The Command Palette
+If you forget a keybinding, press `p` to open the **Command Palette**. This searchable interface allows you to execute any action by name (e.g., type "halt" to find the "Halt Server" command).
 
 ## Step 4: Editing Scripts on the Fly
 

@@ -47,14 +47,21 @@ Start `ectop` by running:
 ectop
 ```
 
-### Command Line Options
+### Configuration & Environment Variables
 
-Currently, `ectop` defaults to connecting to `localhost:3141`. Future versions will support command-line arguments for host and port.
+`ectop` can be configured via command-line arguments or environment variables.
 
-### Configuration
-
-- **Editor**: `ectop` uses the `$EDITOR` environment variable for script editing. If not set, it defaults to `vi`.
-- **Server**: It connects to `localhost:3141` by default.
+- **Server Host**:
+    - CLI: `ectop --host <hostname>`
+    - Environment: `ECF_HOST` (defaults to `localhost`)
+- **Server Port**:
+    - CLI: `ectop --port <port>`
+    - Environment: `ECF_PORT` (defaults to `3141`)
+- **Refresh Interval**:
+    - CLI: `ectop --refresh <seconds>`
+    - Environment: `ECTOP_REFRESH` (defaults to `2.0`)
+- **Editor**:
+    - `ectop` uses the `EDITOR` environment variable for script editing. If not set, it defaults to `vi`.
 
 ### Key Bindings
 
