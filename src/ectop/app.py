@@ -383,11 +383,18 @@ class Ectop(App):
             self.ecflow_client.sync_local()
             defs = self.ecflow_client.get_defs()
             status = "Connected"
+            version = "Unknown"
             if defs:
                 status = str(defs.get_server_state())
+            try:
+                version = self.ecflow_client.server_version()
+            except RuntimeError:
+                pass
 
             self.call_from_thread(tree.update_tree, self.ecflow_client.host, self.ecflow_client.port, defs)
-            self.call_from_thread(status_bar.update_status, self.ecflow_client.host, self.ecflow_client.port, status=status)
+            self.call_from_thread(
+                status_bar.update_status, self.ecflow_client.host, self.ecflow_client.port, status=status, version=version
+            )
             self.call_from_thread(self.notify, "Tree Refreshed")
         except RuntimeError as e:
             self.call_from_thread(

@@ -12,6 +12,7 @@ Sidebar widget for the ecFlow suite tree.
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import ecflow
@@ -27,6 +28,7 @@ from ectop.constants import (
     ICON_UNKNOWN_STATE,
     LOADING_PLACEHOLDER,
     STATE_MAP,
+    TREE_FILTERS,
 )
 
 if TYPE_CHECKING:
@@ -59,7 +61,7 @@ class SuiteTree(Tree[str]):
         super().__init__(*args, **kwargs)
         self.defs: Defs | None = None
         self.current_filter: str | None = None
-        self.filters: list[str | None] = [None, "aborted", "active", "queued", "submitted", "suspended"]
+        self.filters: list[str | None] = TREE_FILTERS
 
     def update_tree(self, client_host: str, client_port: int, defs: Defs | None) -> None:
         """
@@ -408,13 +410,13 @@ class SuiteTree(Tree[str]):
         else:
             self._safe_call(self.app.notify, f"No match found for '{query}'", severity="warning")
 
-    def _safe_call(self, callback: Any, *args: Any, **kwargs: Any) -> Any:
+    def _safe_call(self, callback: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         """
         Safely call a UI-related function from either the main thread or a worker.
 
         Parameters
         ----------
-        callback : Any
+        callback : Callable[..., Any]
             The function to call.
         *args : Any
             Positional arguments.

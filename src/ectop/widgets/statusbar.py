@@ -17,6 +17,8 @@ from typing import Any
 from rich.text import Text
 from textual.widgets import Static
 
+from ectop.constants import COLOR_STATUS_HALTED
+
 
 class StatusBar(Static):
     """
@@ -41,8 +43,9 @@ class StatusBar(Static):
         self.server_info: str = "Disconnected"
         self.last_sync: str = "Never"
         self.status: str = "Unknown"
+        self.server_version: str = "Unknown"
 
-    def update_status(self, host: str, port: int, status: str = "Connected") -> None:
+    def update_status(self, host: str, port: int, status: str = "Connected", version: str = "Unknown") -> None:
         """
         Update the status bar information.
 
@@ -54,9 +57,12 @@ class StatusBar(Static):
             The ecFlow server port.
         status : str, optional
             The server status message, by default "Connected".
+        version : str, optional
+            The ecFlow server version, by default "Unknown".
         """
         self.server_info = f"{host}:{port}"
-        self.status = status
+        self.status = str(status)
+        self.server_version = str(version)
         self.last_sync = datetime.now().strftime("%H:%M:%S")
         self._refresh_content()
 
@@ -77,13 +83,16 @@ class StatusBar(Static):
         if self.status == "RUNNING":
             status_color = "green"
         elif self.status == "HALTED":
-            status_color = "orange"
+            status_color = COLOR_STATUS_HALTED
         elif "Connected" in self.status:
             status_color = "green"
 
         return Text.assemble(
             (" Server: ", "bold"),
             (self.server_info, "cyan"),
+            (" (v", "bold"),
+            (self.server_version, "magenta"),
+            (")", "bold"),
             (" | Status: ", "bold"),
             (self.status, status_color),
             (" | Last Sync: ", "bold"),

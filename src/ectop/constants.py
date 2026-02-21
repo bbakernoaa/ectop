@@ -51,6 +51,8 @@ EXPR_OR_LABEL = "OR (Any must be true)"
 EXPR_AND_LABEL = "AND (All must be true)"
 
 # --- Magic Strings ---
+TREE_FILTERS: list[str | None] = [None, "aborted", "active", "queued", "submitted", "suspended"]
+"""Default status filters for the SuiteTree."""
 LOADING_PLACEHOLDER = "loading..."
 """Placeholder text for lazy-loaded tree nodes."""
 INHERITED_VAR_PREFIX = "inh_"
@@ -77,3 +79,4 @@ COLOR_TEXT = "#a9b1d6"
 COLOR_TEXT_HIGHLIGHT = "#c0caf5"
 COLOR_STATUS_BAR_BG = "#16161e"
 COLOR_HEADER_BG = "#565f89"
+COLOR_STATUS_HALTED = "bold yellow"

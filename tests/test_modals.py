@@ -186,3 +186,46 @@ def test_why_inspector_worker(mock_client: MagicMock) -> None:
             inspector._refresh_deps_logic(tree)
             mock_client.sync_local.assert_called_once()
             mock_client.get_defs.assert_called_once()
+
+
+def test_why_inspector_complex_nested_expression(mock_client: MagicMock) -> None:
+    """Test deeply nested expressions in WhyInspector."""
+    inspector = WhyInspector("/path", mock_client)
+    parent_node = MagicMock()
+    defs = MagicMock()
+
+    # (A and B) or (C and D)
+    expr = "((/s/a == complete) and (/s/b == complete)) or ((/s/c == complete) and (/s/d == complete))"
+
+    # Mock nodes
+    mock_node = MagicMock()
+    mock_node.get_state.return_value = "complete"
+    defs.find_abs_node.return_value = mock_node
+
+    inspector._parse_expression(parent_node, expr, defs)
+
+    # Should have OR at top
+    parent_node.add.assert_any_call(EXPR_OR_LABEL, expand=True)
+
+    # Should have AND nodes added to the OR node
+    or_node = parent_node.add.return_value
+    or_node.add.assert_any_call(EXPR_AND_LABEL, expand=True)
+
+
+def test_variable_tweaker_error_handling(mock_client: MagicMock) -> None:
+    """Test error handling in VariableTweaker logic."""
+    tweaker = VariableTweaker("/node", mock_client)
+
+    with patch.object(VariableTweaker, "app", new_callable=PropertyMock) as mock_app:
+        app_mock = MagicMock()
+        mock_app.return_value = app_mock
+        app_mock.call_from_thread = lambda f, *args, **kwargs: f(*args, **kwargs)
+        tweaker.call_from_thread = lambda f, *args, **kwargs: f(*args, **kwargs)
+
+        # RuntimeError during deletion
+        mock_client.alter.side_effect = RuntimeError("Server Error")
+
+        tweaker._delete_variable_logic("VAR1")
+
+        # Should notify about the error
+        app_mock.notify.assert_called_with("Error: Server Error", severity="error")
