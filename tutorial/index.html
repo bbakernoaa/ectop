@@ -1,0 +1,1035 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://bbakernoaa.github.io/ectop/tutorial/">
+      
+      
+        <link rel="prev" href="./..">
+      
+      
+        <link rel="next" href="../architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.23">
+    
+    
+      
+        <title>Tutorial: Getting Started with ectop - ectop</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.1e989742.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,a=__md_scope)=>JSON.parse(t.getItem(a.pathname+"."+e)),__md_set=(e,t,a=localStorage,_=__md_scope)=>{try{a.setItem(_.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tutorial-getting-started-with-ectop" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="ectop" class="md-header__button md-logo" aria-label="ectop" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ectop
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Tutorial: Getting Started with ectop
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/bbakernoaa/ectop" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="ectop" class="md-nav__button md-logo" aria-label="ectop" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    ectop
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bbakernoaa/ectop" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-create-and-load-the-tutorial-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Create and Load the Tutorial Suite
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-launch-ectop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Launch ectop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-monitoring-and-interaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Monitoring and Interaction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: Monitoring and Interaction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-status-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Status Bar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-tree-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Tree View
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#viewing-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Viewing Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing Nodes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#live-log-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live Log Updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#searching-within-content" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Searching within Content
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-is-it-queued" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why is it queued?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finding-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding Nodes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filtering-by-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filtering by Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#utility-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility Actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server Control
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-command-palette" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Command Palette
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quitting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quitting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-editing-scripts-on-the-fly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Editing Scripts on the Fly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-create-and-load-the-tutorial-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Create and Load the Tutorial Suite
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-launch-ectop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Launch ectop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-monitoring-and-interaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Monitoring and Interaction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: Monitoring and Interaction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-status-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Status Bar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-tree-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Tree View
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#viewing-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Viewing Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing Nodes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#live-log-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live Log Updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#searching-within-content" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Searching within Content
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-is-it-queued" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why is it queued?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finding-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding Nodes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filtering-by-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filtering by Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#utility-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility Actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server Control
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-command-palette" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Command Palette
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quitting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quitting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-editing-scripts-on-the-fly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Editing Scripts on the Fly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+  
+
+
+<h1 id="tutorial-getting-started-with-ectop">Tutorial: Getting Started with ectop<a class="headerlink" href="#tutorial-getting-started-with-ectop" title="Permanent link">&para;</a></h1>
+<p>This tutorial will guide you through using <code>ectop</code> to monitor and manage a sample ecFlow suite.</p>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>ecFlow Server</strong>: Ensure you have an ecFlow server running. You can start one locally with:
+    <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ECF_PORT</span><span class="o">=</span><span class="m">3141</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ECF_HOME</span><span class="o">=</span><span class="nv">$HOME</span>/ecflow_home
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="nv">$ECF_HOME</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>ecflow_server
+</span></code></pre></div></li>
+<li><strong>ectop</strong>: Installed and ready to use.</li>
+</ol>
+<h2 id="step-1-create-and-load-the-tutorial-suite">Step 1: Create and Load the Tutorial Suite<a class="headerlink" href="#step-1-create-and-load-the-tutorial-suite" title="Permanent link">&para;</a></h2>
+<p>We have provided an example suite in <code>examples/tutorial_suite.py</code>. This suite simulates a simple data processing workflow with dependencies.</p>
+<ol>
+<li>
+<p><strong>Generate the definition file</strong>:
+    <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>examples/tutorial_suite.py
+</span></code></pre></div>
+    This will create a <code>tutorial.def</code> file.</p>
+</li>
+<li>
+<p><strong>Load the suite into your server</strong>:
+    <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ecflow_client<span class="w"> </span>--port<span class="w"> </span><span class="m">3141</span><span class="w"> </span>--load<span class="w"> </span>tutorial.def
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Begin play</strong>:
+    <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ecflow_client<span class="w"> </span>--port<span class="w"> </span><span class="m">3141</span><span class="w"> </span>--begin<span class="w"> </span>tutorial
+</span></code></pre></div></p>
+</li>
+</ol>
+<h2 id="step-2-launch-ectop">Step 2: Launch ectop<a class="headerlink" href="#step-2-launch-ectop" title="Permanent link">&para;</a></h2>
+<p>Now, start <code>ectop</code> to monitor the suite:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ectop
+</span></code></pre></div>
+<p>You should see the <code>tutorial</code> suite in the tree on the left.</p>
+<p><img alt="ectop main view" src="../assets/main_view.svg" /></p>
+<h2 id="step-3-monitoring-and-interaction">Step 3: Monitoring and Interaction<a class="headerlink" href="#step-3-monitoring-and-interaction" title="Permanent link">&para;</a></h2>
+<h3 id="the-status-bar">The Status Bar<a class="headerlink" href="#the-status-bar" title="Permanent link">&para;</a></h3>
+<p>At the bottom of the screen, you will find the <strong>Status Bar</strong>. This provides critical information at a glance:
+- <strong>Server</strong>: The host and port you are connected to.
+- <strong>Version</strong>: The version of the ecFlow server (e.g., <code>v5.11.4</code>).
+- <strong>Status</strong>: The scheduling state of the server (e.g., <code>RUNNING</code> or <code>HALTED</code>).
+- <strong>Last Sync</strong>: The exact time of the last successful synchronization with the server.</p>
+<h3 id="the-tree-view">The Tree View<a class="headerlink" href="#the-tree-view" title="Permanent link">&para;</a></h3>
+<p>The left sidebar shows the hierarchy of your suite. You can use the arrow keys to navigate and <code>Enter</code> to expand or collapse nodes. Icons next to node names indicate their current state (e.g., 🟢 for complete, 🔥 for active).</p>
+<h3 id="viewing-files">Viewing Files<a class="headerlink" href="#viewing-files" title="Permanent link">&para;</a></h3>
+<p>Select a task (e.g., <code>tutorial/ingest/get_data</code>) and press <code>l</code> to <strong>Load</strong>. <code>ectop</code> will fetch the script, the generated job, and any available log output, displaying them in the tabs on the right.</p>
+<h3 id="managing-nodes">Managing Nodes<a class="headerlink" href="#managing-nodes" title="Permanent link">&para;</a></h3>
+<p><code>ectop</code> provides full control over your ecFlow nodes:</p>
+<ul>
+<li><strong>Suspend/Resume</strong>: Select a node and press <code>s</code> to <strong>Suspend</strong> (🟠) or <code>u</code> to <strong>Resume</strong>.</li>
+<li><strong>Kill</strong>: If a task is stuck or running too long, press <code>k</code> to <strong>Kill</strong> it.</li>
+<li><strong>Force Complete</strong>: Press <code>f</code> to manually move a node to the <strong>Complete</strong> (🟢) state.</li>
+<li><strong>Requeue</strong>: Press <code>R</code> (<strong>Shift + R</strong>) to reset a node and its children, moving them back to the <strong>Queued</strong> (🔵) state.</li>
+</ul>
+<h3 id="live-log-updates">Live Log Updates<a class="headerlink" href="#live-log-updates" title="Permanent link">&para;</a></h3>
+<p>If a task is running (Active 🔥), you can toggle live log tailing by pressing <code>t</code>. The <code>Output</code> tab will periodically refresh with new data from the server.</p>
+<h3 id="searching-within-content">Searching within Content<a class="headerlink" href="#searching-within-content" title="Permanent link">&para;</a></h3>
+<p>When viewing a large log file or complex script, press <code>Ctrl + F</code> to search within the current content tab. This will highlight matches and allow you to find specific strings quickly.</p>
+<h3 id="why-is-it-queued">Why is it queued?<a class="headerlink" href="#why-is-it-queued" title="Permanent link">&para;</a></h3>
+<p>If a node is not running when you expect it to, select it and press <code>w</code>. The <strong>Why Inspector</strong> will show you the triggers or dependencies that are currently blocking it. This view recursively parses trigger expressions, highlighting exactly which parts of the logic are unmet.</p>
+<h3 id="finding-nodes">Finding Nodes<a class="headerlink" href="#finding-nodes" title="Permanent link">&para;</a></h3>
+<p>In large suites, finding a specific task can be difficult. Press <code>/</code> to open the <strong>Search Box</strong>. As you type, <code>ectop</code> will perform a live search across all nodes in the suite. Press <code>Enter</code> to jump to and select the next matching node.</p>
+<h3 id="filtering-by-status">Filtering by Status<a class="headerlink" href="#filtering-by-status" title="Permanent link">&para;</a></h3>
+<p>You can filter the tree to show only nodes in a specific state by pressing <code>F</code> (<strong>Shift + F</strong>). This cycles through filters like:
+- <strong>Aborted</strong>: Focus only on failed tasks.
+- <strong>Active</strong>: See what is currently running.
+- <strong>Suspended</strong>: Find paused parts of the workflow.
+- <strong>All</strong>: Clear all filters.</p>
+<p>The current filter is displayed in the tree root label.</p>
+<h3 id="managing-variables">Managing Variables<a class="headerlink" href="#managing-variables" title="Permanent link">&para;</a></h3>
+<p>Press <code>v</code> to open the <strong>Variable Tweaker</strong>.
+- <strong>User Variables</strong>: Defined specifically on this node.
+- <strong>Generated Variables</strong>: Automatic ecFlow variables (like <code>ECF_TRYNO</code>).
+- <strong>Inherited Variables</strong>: Variables defined on parent families or the suite itself.</p>
+<p>To override an inherited variable, simply add a new variable with the same name to the current node.</p>
+<h3 id="utility-actions">Utility Actions<a class="headerlink" href="#utility-actions" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Copy Path</strong>: Press <code>c</code> to copy the absolute ecFlow path of the selected node to your clipboard.</li>
+<li><strong>Manual Refresh</strong>: While <code>ectop</code> updates automatically, you can force a full sync of the suite tree by pressing <code>r</code>.</li>
+</ul>
+<h3 id="server-control">Server Control<a class="headerlink" href="#server-control" title="Permanent link">&para;</a></h3>
+<p>If you have administrative privileges, you can control the server's scheduling state:
+- <strong>Halt Server</strong>: Press <code>H</code> (<strong>Shift + H</strong>) to stop the server from scheduling any new tasks. The status bar will show <code>HALTED</code>.
+- <strong>Start Server</strong>: Press <code>S</code> (<strong>Shift + S</strong>) to resume scheduling. The status bar will show <code>RUNNING</code>.</p>
+<h3 id="the-command-palette">The Command Palette<a class="headerlink" href="#the-command-palette" title="Permanent link">&para;</a></h3>
+<p>If you forget a keybinding, press <code>p</code> to open the <strong>Command Palette</strong>. This searchable interface allows you to execute any action by name (e.g., type "halt" to find the "Halt Server" command).</p>
+<h3 id="quitting">Quitting<a class="headerlink" href="#quitting" title="Permanent link">&para;</a></h3>
+<p>When you are finished, press <code>q</code> to safely exit <code>ectop</code>.</p>
+<h2 id="step-4-editing-scripts-on-the-fly">Step 4: Editing Scripts on the Fly<a class="headerlink" href="#step-4-editing-scripts-on-the-fly" title="Permanent link">&para;</a></h2>
+<p>One of <code>ectop</code>'s most powerful features is the ability to edit scripts directly.</p>
+<ol>
+<li>Select a task.</li>
+<li>Press <code>e</code>.</li>
+<li>Your default editor (defined by <code>$EDITOR</code>) will open with the script content.</li>
+<li>Make a change and save.</li>
+<li><code>ectop</code> will prompt you if you want to update the script on the server and optionally <strong>Requeue</strong> the task to run the new version.</li>
+</ol>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<p>Explore the <a href="../architecture/">Architecture</a> page to learn how <code>ectop</code> works under the hood, or check the <a href="../reference/">Reference</a> for a full list of keybindings.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":[],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.5fcf0de6.min.js"></script>
+      
+    
+  </body>
+</html>
